@@ -14,3 +14,6 @@ Download the .zip file for Windows or if you have an Android device, you can ins
 <p>
   <a href="https://github.com/AFunProgrammer/ChainReaction/raw/main/Compiled/chainreaction.apk">Download Android ChainReaction Game</a>
 </p>
+<p>
+  <a href="https://github.com/AFunProgrammer/ChainReaction/raw/main/Compiled/chainreaction_v8_arm64.apk">Download Android V8 ARM64 ChainReaction Game</a>
+</p>
