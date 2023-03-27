@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>circle.svg</file>
+    </qresource>
+    <qresource prefix="/icons">
+        <file>ChainReaction_16x16.ico</file>
+        <file>ChainReaction_24x24.ico</file>
+        <file>ChainReaction_32x32.ico</file>
+    </qresource>
+    <qresource prefix="/palette">
+        <file>WindowPalette.xml</file>
+    </qresource>
+</RCC>
