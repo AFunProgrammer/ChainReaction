@@ -6,7 +6,7 @@ The goal is to click on or touch a single dot and try to get all the other dots 
 ![alt text](https://github.com/AFunProgrammer/ChainReaction/raw/main/Pictures/ChainReactionClick.PNG)
 ![alt text](https://github.com/AFunProgrammer/ChainReaction/raw/main/Pictures/ChainReactionEnd.PNG)
 
-and then download the .zip file (or if you have an android, you can install the .apk file) to try out the game
+Download the .zip file for Windows or if you have an Android device, you can install the .apk file
 
 <p>
   <a href="https://github.com/AFunProgrammer/ChainReaction/raw/main/Compiled/ChainReaction.zip">Download ChainReaction Game</a>
