@@ -1,11 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <cmath>
-#include <typeinfo>
 
 #include <QObject>
 #include <QGuiApplication>
@@ -18,11 +15,12 @@ void MainWindow::CreateDots(uint Count, uint Size)
     this->RenderTimer.stop();
     //QThread::msleep(100); //wait for timer to finish processing
 
-    _DotsManager.clearDots();
+    ui->oglDots->clearDots();
+    QSize oglDotsSize = ui->oglDots->geometry().size();
 
     //QThread::msleep(10);
     /************ End of Cleanup Code **********/
-    QPoint ptExtent = QPoint(_DotsManager.geometry().width()-(Size/2), _DotsManager.geometry().height()-(Size/2));
+    QPoint ptExtent = QPoint(oglDotsSize.width()-(Size/2), oglDotsSize.height()-(Size/2));
 
     for ( uint udot = 0; udot < Count; udot++ )
     {
@@ -36,7 +34,7 @@ void MainWindow::CreateDots(uint Count, uint Size)
         //qDebug() << "Dot#" << dot->getId() << " Random Speed: " << dot->getSpeed() << " Random Color: " << (int)dot->getColor();
         //qDebug() << "Dot#" << dot->getId() << ": Speed: " << Speed << " Dir: " << (uint)dot->getXDirection() << "," << (uint)dot->getYDirection() << " Pos: " << dot->getLocation();
 
-        _DotsManager.addDot(dot);
+        ui->oglDots->addDot(dot);
     }
 
     //qDebug() << "Number of Dots: " << _ListOfDots.count();
@@ -117,7 +115,7 @@ MainWindow::MainWindow(QWidget *parent)
             break;
         }
 
-        _DotsManager.setClearColor(newColor);
+        ui->oglDots->setClearColor(newColor);
         QPalette appPalette = ui->btnNextBackColor->palette();
         appPalette.setColor(QPalette::Button, nextColor);
         appPalette.setColor(QPalette::ColorRole::Window, nextColor);
@@ -147,20 +145,20 @@ MainWindow::MainWindow(QWidget *parent)
     ui->sldrDotSize->connect(ui->sldrDotSize,&QScrollBar::valueChanged,[this](int value)
     {
         //CreateDots((uint)(ui->sldrDots->value()), (uint)value);
-        _DotsManager.setDotsSize(value);
+        ui->oglDots->setDotsSize(value);
     });
 
-    // CClickCap ... awesome class
     // Setup the click capture area, trying to select the dots seems to lag
     //  in comparison the the frame output so have to decide where the user
     //  is in fact trying to click to help make the game a more enjoyable
     //  experience (and allows for better control... <crosses fingers/>)
 
-    _DotsManager.setParent(ui->centralwidget);
-    _DotsManager.setBounds(ui->frmDrawBox->geometry());
-    _DotsManager.setSVGFile(":/images/circle.svg");
-    _DotsManager.show();
-    _DotsManager.raise();
+    //ui->oglDots->setParent(ui->frmDrawBox);
+    //ui->oglDots->setBounds(ui->frmDrawBox->geometry().size());
+    //ui->oglDots->setLayout(ui->gridLayout);
+    ui->oglDots->setSVGFile(":/images/circle.svg");
+    ui->oglDots->show();
+    ui->oglDots->raise();
 
     // Setup the reset button for more pleasure
     ui->btnReset->connect(ui->btnReset, &QPushButton::clicked, [this]()
@@ -171,14 +169,14 @@ MainWindow::MainWindow(QWidget *parent)
     RenderTimer.setInterval(33);
     RenderTimer.connect(&RenderTimer, &QTimer::timeout, [this]()
     {
-        _DotsManager.updateDots();
-        _DotsManager.update();
+        ui->oglDots->updateDots();
+        ui->oglDots->update();
 
-        ui->lblNumberOfDots->setText(std::to_string(_DotsManager.getDotCount()).c_str());
+        ui->lblNumberOfDots->setText(std::to_string(ui->oglDots->getDotCount()).c_str());
 
-        if ( _DotsManager.getCollisionCount() == 0 && _DotsManager.getLastCollisionCount() > 0 )
+        if ( ui->oglDots->getCollisionCount() == 0 && ui->oglDots->getLastCollisionCount() > 0 )
         {
-            int CollisionCount = _DotsManager.getLastCollisionCount();
+            int CollisionCount = ui->oglDots->getLastCollisionCount();
             QString strYouCaused = QString(std::to_string(CollisionCount).c_str()) + QString(" Collisions - ");
             if ( CollisionCount < 5 )
                 strYouCaused += "Good";
@@ -200,8 +198,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     });//end of timer loop
 
-    // Resize GUI
-    qGuiApp->sendEvent(this, &resizeEvent);
+    ui->btnQuit->connect(ui->btnQuit, &QPushButton::clicked, qApp, &QCoreApplication::quit);
 
     // Create the initial set of dots
     CreateDots((uint)(ui->sldrDots->value()), (uint)(ui->sldrDotSize->value()));
@@ -209,122 +206,6 @@ MainWindow::MainWindow(QWidget *parent)
     // Start the timer with the awesome lambda inside :-)
     RenderTimer.start(33);
 }
-
-void MainWindow::sizeGUIElements()
-{
-#if defined(Q_OS_ANDROID)
-    int iWidth = this->screen()->availableGeometry().width();
-    int iHeight = this->screen()->availableGeometry().height();
-    this->setGeometry(QRect(0,0,iWidth,iHeight));
-#else
-    int iWidth = this->window()->childrenRect().width();
-    int iHeight = this->window()->childrenRect().height();
-#endif
-
-    int iOneThird = (int)((float)iWidth/3.0f);
-    int iOneSixth = (int)((float)iOneThird/2.0f);
-    int iOneTwelth = (int)((float)iOneSixth/2.0f);
-    int iOneFifth = (int)((float)iWidth/5.0f);
-    int iOneTenth = (int)((float)iOneFifth/2.0f);
-    int iOneTwentieth = (int)((float)iOneFifth/2.0f);
-
-    QRect rctMessage = QRect(0,
-                             0,
-                             iWidth-iOneThird-iOneSixth,
-                             20);
-
-    QRect rctDotsLeft = QRect(iOneTwelth + rctMessage.left() + rctMessage.width(),
-                              0,
-                              80,
-                              20);
-
-    QRect rctNumberDotsLeft = QRect(rctDotsLeft.left() + rctDotsLeft.width(),
-                                    0,
-                                    40,
-                                    20);
-
-    QRect rctDrawBox = QRect(0,
-                             20,
-                             iWidth,
-                             iHeight-120);
-
-    QRect rctDotSize = QRect(iOneTwelth/2,
-                             rctDrawBox.top()+rctDrawBox.height()+10,
-                             70,
-                             20);
-
-    QRect rctDotSizeSlider = QRect(rctDotSize.left()+rctDotSize.width(),
-                                   rctDrawBox.top()+rctDrawBox.height()+10,
-                                   iOneThird - iOneTwelth,
-                                   20);
-
-    QRect rctDots = QRect(rctDotSizeSlider.left()+rctDotSizeSlider.width()+iOneTwelth,
-                          rctDrawBox.top()+rctDrawBox.height()+10,
-                          40,
-                          20);
-
-    QRect rctDotsSlider = QRect(rctDots.left()+rctDots.width(),
-                                rctDrawBox.top()+rctDrawBox.height()+10,
-                                iOneThird - iOneTwelth,
-                                20);
-
-    QRect rctReset = QRect(iOneTwelth/2,
-                           rctDotSize.top()+rctDotSize.height() + 10,
-                           iOneTenth+iOneTwentieth,
-                           30);
-
-    QRect rctBackColor = QRect(iOneTwelth/2 + rctReset.width() + rctReset.left(),
-                               rctDotSize.top()+rctDotSize.height() + 10,
-                               2*iOneFifth + iOneTwentieth/2,
-                               30);
-
-    QRect rctQuit = QRect(iOneTwelth/2 + rctBackColor.width() + rctBackColor.left(),
-                          rctDotSize.top()+rctDotSize.height() + 10,
-                          iOneTenth+iOneTwentieth,
-                          30);
-
-    ui->lblMessage->setGeometry(rctMessage);
-    ui->lblDotsLeft->setGeometry(rctDotsLeft);
-    ui->lblNumberOfDots->setGeometry(rctNumberDotsLeft);
-    ui->frmDrawBox->setGeometry(rctDrawBox);
-    ui->lblDotSize->setGeometry(rctDotSize);
-    ui->sldrDotSize->setGeometry(rctDotSizeSlider);
-    ui->lblDots->setGeometry(rctDots);
-    ui->sldrDots->setGeometry(rctDotsSlider);
-    ui->btnReset->setGeometry(rctReset);
-    ui->btnNextBackColor->setGeometry(rctBackColor);
-    ui->btnQuit->setGeometry(rctQuit);
-
-    _DotsManager.setGeometry(rctDrawBox);
-    _DotsManager.setBounds(rctDrawBox);
-
-    ui->frmDrawBox->lower();
-    ui->frmDrawBox->update();
-    _DotsManager.raise();
-    _DotsManager.update();
-
-    ui->lblMessage->update();
-    ui->lblDotsLeft->update();
-    ui->lblNumberOfDots->update();
-    ui->frmDrawBox->update();
-    ui->lblDotSize->update();
-    ui->sldrDotSize->update();
-    ui->lblDots->update();
-    ui->sldrDots->update();
-    ui->btnReset->raise();
-    ui->btnReset->update();
-    ui->btnNextBackColor->raise();
-    ui->btnNextBackColor->update();
-    ui->btnQuit->raise();
-    ui->btnQuit->update();
-}
-
-void MainWindow::resizeEvent(QResizeEvent*)
-{
-    //qDebug() << "MainWindow::resizeEvent: ";
-    sizeGUIElements();
-}
-
 
 MainWindow::~MainWindow()
 {

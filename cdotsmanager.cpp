@@ -1,11 +1,7 @@
 #include "cdotsmanager.h"
 
 #include <QPainter>
-
-#include <stdio.h>
-#include <stdlib.h>
 #include <math.h>
-#include <cmath>
 
 bool CDotsManager::m_ClickLock = false;
 
@@ -36,17 +32,7 @@ void CDotsManager::setClearColor(QColor Color)
 }
 
 
-void CDotsManager::setBounds(QRect Rect)
-{
-    setGeometry(Rect);
-
-    for(CDot* dot: m_Dots)
-    {
-        setDotDrawBoundary(dot);
-    }
-}
-
-QPixmap CDotsManager::getSVGPixmap(eColor Color, QPointF Scale, uint Size)
+QPixmap CDotsManager::getSVGPixmap(eColor Color, QPointF Scale = QPointF(0,0), uint Size = 0)
 {
     QPixmap svgToPixmap;
     QString svgColorSizeChange = m_SvgFile;
@@ -120,19 +106,28 @@ void CDotsManager::createDotPixmaps()
 
 void CDotsManager::setDotPixmap(CDot* Dot)
 {
-    uint size = Dot->getSize();
-
     Dot->setScale(1.0f);
     Dot->setScaleMax(3.0f);
 
     Dot->setPixmap(&m_DotPixmaps[Dot->getColor()]);
 }
 
-void CDotsManager::setDotDrawBoundary(CDot* Dot)
+QRect CDotsManager::getMaxDotBoundary(uint DotSize){
+    QSize boxSize = this->geometry().size();
+    QRect rectBounds = QRect(DotSize/2,DotSize/2,boxSize.width()-DotSize/2,boxSize.height()-DotSize/2);
+    return rectBounds;
+}
+
+
+void CDotsManager::setDotsDrawBoundary()
 {
-    //QRect rectBounds = geometry();
-    QRect rectBounds = QRect(0,0,geometry().width(),geometry().height());
-    Dot->setBounds(rectBounds);
+    uint dotSize = m_Dots[0]->getSize();
+    QRect rectBounds = getMaxDotBoundary(dotSize);
+
+    for(CDot* dot: m_Dots)
+    {
+        dot->setBounds(rectBounds);
+    }
 }
 
 void CDotsManager::setDotSize(CDot* Dot)
@@ -150,8 +145,8 @@ void CDotsManager::addDot(CDot* Dot)
 {
     if ( Dot != nullptr )
     {
+        Dot->setBounds(getMaxDotBoundary(Dot->getSize()));
         setDotPixmap(Dot);
-        setDotDrawBoundary(Dot);
         m_Dots.append(Dot);
         m_RemovedDots.resize(m_Dots.count());
     }
@@ -290,6 +285,12 @@ uint CDotsManager::getCollisionCount()
 uint CDotsManager::getLastCollisionCount()
 {
     return m_LastCollisionCount;
+}
+
+
+void CDotsManager::resizeEvent(QResizeEvent *event){
+    QOpenGLWidget::resizeEvent(event);
+    setDotsDrawBoundary();
 }
 
 void CDotsManager::mousePressEvent(QMouseEvent *event)
