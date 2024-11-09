@@ -54,11 +54,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     QEvent resizeEvent = QEvent(QEvent::Resize);
 
-    QPalette appPalette = this->palette();
-    appPalette.setColor(QPalette::Base, Qt::black);
-    appPalette.setColor(QPalette::Window, Qt::black);
-    this->setPalette(appPalette);
-
     ui->btnNextBackColor->connect(ui->btnNextBackColor,&QPushButton::clicked,[this]()
     {
         static Qt::GlobalColor color = Qt::black;
@@ -116,25 +111,6 @@ MainWindow::MainWindow(QWidget *parent)
         }
 
         ui->oglDots->setClearColor(newColor);
-        QPalette appPalette = ui->btnNextBackColor->palette();
-        appPalette.setColor(QPalette::Button, nextColor);
-        appPalette.setColor(QPalette::ColorRole::Window, nextColor);
-        appPalette.setColor(QPalette::ColorRole::AlternateBase, nextColor);
-        appPalette.setColor(QPalette::ColorRole::Light, nextColor);
-        appPalette.setColor(QPalette::ColorRole::Dark, nextColor);
-        appPalette.setColor(QPalette::ColorRole::Mid, nextColor);
-        appPalette.setColor(QPalette::ColorRole::Base, nextColor);
-
-        if ( nextColor == Qt::black )
-            appPalette.setColor(QPalette::ButtonText, Qt::white);
-        else
-            appPalette.setColor(QPalette::ButtonText, Qt::black);
-
-        appPalette.setCurrentColorGroup(QPalette::ColorGroup::All);
-        ui->btnNextBackColor->setPalette(appPalette);
-        ui->btnNextBackColor->setAutoFillBackground(true);
-        ui->btnNextBackColor->update();
-
     });
 
     ui->sldrDots->connect(ui->sldrDots,&QScrollBar::valueChanged,[this](int value)
