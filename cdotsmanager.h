@@ -36,6 +36,8 @@ private:
 
     QColor m_ClearColor = Qt::black;
 
+    QRect m_Rect = QRect(0,0,0,0);
+
 private:
     QList<CDot*> m_Dots;
     QList<CDot*> m_RemovedDots;
@@ -49,7 +51,8 @@ private:
 
     void setDotPixmap(CDot* Dot);
 
-    void setDotDrawBoundary(CDot* Dot);
+    void setDotsDrawBoundary();
+    QRect getMaxDotBoundary(uint DotSize);
 
     void setDotSize(CDot* Dot);
 
@@ -73,12 +76,16 @@ public:
 
     void updateDots();
 
-    void setBounds(QRect Rect);
+    void setBounds(QSize size);
 
     uint getCollisionCount();
     uint getLastCollisionCount();
 
     void setClearColor(QColor Color);
+
+    void resizeEvent(QResizeEvent *event) override;
+    //void setGeometry(const QRect &r);
+    //QRect geometry();
 
     void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;

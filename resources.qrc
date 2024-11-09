@@ -7,7 +7,5 @@
         <file>ChainReaction_24x24.ico</file>
         <file>ChainReaction_32x32.ico</file>
     </qresource>
-    <qresource prefix="/palette">
-        <file>WindowPalette.xml</file>
-    </qresource>
+    <qresource prefix="/palette"/>
 </RCC>
