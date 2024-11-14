@@ -32,7 +32,7 @@ void CDotsManager::setClearColor(QColor Color)
 }
 
 
-QPixmap CDotsManager::getSVGPixmap(eColor Color, QPointF Scale = QPointF(0,0), uint Size = 0)
+QPixmap CDotsManager::getSVGPixmap(eColor Color, uint Size = 0)
 {
     QPixmap svgToPixmap;
     QString svgColorSizeChange = m_SvgFile;
@@ -309,10 +309,9 @@ void CDotsManager::mousePressEvent(QMouseEvent *event)
     {
         if ( clickArea.intersects(m_Dots[iDot]->getDrawRect()) )
         {
-            PTDot inArea = m_Dots[iDot];
             if ( closestDotToClick != -1 )
             {
-                ulong uNewDot = CUtility::getCrossProduct(inArea->m_Position, clickPos);
+                ulong uNewDot = CUtility::getCrossProduct(m_Dots[iDot]->m_Position, clickPos);
                 ulong uDot = CUtility::getCrossProduct(m_Dots[closestDotToClick]->m_Position, clickPos);
                 if ( uNewDot < uDot )
                     closestDotToClick = iDot;

@@ -9,17 +9,17 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    cdot.cpp \
     cdotsmanager.cpp \
     cutility.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    tdot.cpp
 
 HEADERS += \
-    cdot.h \
     cdotsmanager.h \
     cutility.h \
-    mainwindow.h
+    mainwindow.h \
+    tdot.h
 
 FORMS += \
     mainwindow.ui
