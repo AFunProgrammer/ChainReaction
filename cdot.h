@@ -8,91 +8,110 @@
 
 #include "cutility.h"
 
-class CDot
-{
-public:
-    enum class Movement
-    {
-        Positive = 0x0,
-        Negative,
-        None
-    };
 
-private:
-    QPixmap* m_Pixmap = nullptr;
+typedef struct _DOT{
+    unsigned m_Id = 0;
 
     eColor m_Color = eColor::red;
-
     int m_Size = 10;
     int m_Radius = 5;
-
-    QRect m_Bounds = QRect(0,0,100,100);
-    QPoint m_Pos;
-
-    bool m_Resize = false;
-    int  m_IncreasingSize = true;
-
-    float m_ScaleMin = 0.01f;
-    float m_ScaleMax = 3.0f;
     float m_Scale = 1.0f;
+    QPoint m_Position = QPoint(0,0);
 
-    bool m_Move = true;
-    Movement m_XMovement = Movement::None;
-    Movement m_YMovement = Movement::None;
-    QPoint m_Speed = QPoint(6,6);
+    bool m_Touched = false; // If !m_Touched then moving
+    bool m_Exploded = false; // If m_Touched and !m_Exploded then currently exploding
 
-    bool m_Stopped = false;
+    QPoint m_Direction = QPoint(1,1);
+    float m_Sizing = 1;
 
-    unsigned long long m_Id = 0;
+    QSize m_BoxBounds = QSize(0,0);
+    float m_MaxScale = 3.0f;
 
-    void updateMovement();
-    void updateScaling();
+    QPixmap m_Pixmap;
 
-public:
-    explicit CDot();
-    ~CDot(){}
+    void setRandomColor(){
+        m_Color = (eColor)(rand()%6+1);
+    }
 
-    void setPixmap(QPixmap* Pixmap);
-    QPixmap* getPixmap();
+    void setRandomDirection(){
+        int rDirX = rand()%2 * 2 - 1;
+        int rDirY = rand()%2 * 2 - 1;
+        int DirX = rand()%6 + 2;
+        int DirY = rand()%6 + 2;
+        m_Direction = QPoint(rDirX * DirX, rDirY * DirY);
+    }
 
-    void setColor(eColor Color);
-    eColor getColor();
+    void setRandomPosition(QSize Bounds){
+        m_Position = QPoint(rand()%Bounds.width(),rand()%Bounds.height());
+    }
 
-    void setPos(QPoint Pos);
-    QPoint getPos();
+    // Updates position, movement, size
+    void update(){
+        if ( !m_Touched ){
+            //Update movement
 
-    void setMovement(Movement X, Movement Y);
-    Movement getXMovement();
-    Movement getYMovement();
+            // X check, is outside box bounds, if not then move in direction
+            if ( m_Direction.x() > 0 && (m_Position.x() + m_Radius) >= m_BoxBounds.width()) {
+                m_Direction.setX(m_Direction.x() * -1);
+            }
+            else if ( m_Direction.x() < 0 && (m_Position.x() - m_Radius) <= 0) {
+                m_Direction.setX(m_Direction.x() * -1);
+            }
+            else {
+                m_Position.setX(m_Position.x() + m_Direction.x());
+            }
 
-    void setSpeed(QPoint Speed);
-    QPoint getSpeed();
+            // Y check, for hitting box bounds, if not then move in direction
+            if ( m_Direction.y() > 0 && (m_Position.y() + m_Radius) >= m_BoxBounds.height() )
+            {
+                m_Direction.setY(m_Direction.y() * -1);
+            }
+            else if ( m_Direction.y() < 0 && (m_Position.y() - m_Radius) <= 0 )
+            {
+                m_Direction.setY(m_Direction.y() * -1);
+            }
+            else {
+                m_Position.setY(m_Position.y() + m_Direction.y());
+            }
 
-    void setScaleMin(float Min);
-    void setScaleMax(float Max);
-    void setScale(float Scale);
-    float getScaleMin();
-    float getScaleMax();
-    float getScale();
+        } else if( m_Touched && !m_Exploded ){
+            //Update resize
+            if ( m_Sizing > 0 )
+            {
+                m_Scale += .25f;
 
-    void setSize(uint Size);
-    uint getSize();
+                if ( m_Scale >= m_MaxScale )
+                    m_Sizing = -1;
+            }
+            else
+            {
+                m_Scale -= .33f;
 
-    bool isStopped();
+                if ( m_Scale <= 0.01f )
+                {
+                    m_Scale = .005f;
+                    m_Exploded = true;
+                }
+            }
+        }
+    }
 
-    void startResizing();
-    bool isResizing();
 
-    void setBounds(QRect Rect);
-    QRect getDrawRect();
+    QRect getDrawRect()
+    {
+        float fRadius = m_Size * 0.5f;
+        QRectF HalfPixelMeasure((float)m_Position.x() - ((float)m_Radius*m_Scale * 0.5),
+                                (float)m_Position.y() - ((float)fRadius*m_Scale * 0.5),
+                                ((float)m_Radius*m_Scale),
+                                ((float)m_Radius*m_Scale));
 
-    void setId(ulong Id);
-    ulong getId();
+        QRect Bounds = QRect((int)HalfPixelMeasure.x(), (int)HalfPixelMeasure.y(), (int)HalfPixelMeasure.width(), (int)HalfPixelMeasure.height());
 
-    void update();
+        //qDebug() << "Dot: " << objectName() << " Position: " << m_Position << " Draw Rect: " << Bounds << " Half Pixel Measure: " << HalfPixelMeasure ;
 
-    CDot* operator= (CDot RHS);
-    CDot* operator= (CDot* RHS);
-};
+        return Bounds;
+    }
+}TDot,*PTDot;
+
 
 #endif // CDot

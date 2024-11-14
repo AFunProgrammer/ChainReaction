@@ -39,8 +39,8 @@ private:
     QRect m_Rect = QRect(0,0,0,0);
 
 private:
-    QList<CDot*> m_Dots;
-    QList<CDot*> m_RemovedDots;
+    QList<PTDot> m_Dots;
+    QList<PTDot> m_RemovedDots;
 
     std::map<eColor, QPixmap> m_DotPixmaps;
 
@@ -49,15 +49,14 @@ private:
     QPixmap getSVGPixmap(eColor Color, QPointF Scale, uint Size);
     void createDotPixmaps();
 
-    void setDotPixmap(CDot* Dot);
+    void setDotPixmap(PTDot Dot);
 
     void setDotsDrawBoundary();
-    QRect getMaxDotBoundary(uint DotSize);
 
-    void setDotSize(CDot* Dot);
+    void setDotSize(PTDot Dot);
 
     void drawDots(QPainter* Painter);
-    void checkForCollisions(QList<CDot*> resizingDots);
+    void checkForCollisions(QList<PTDot> resizingDots);
 
 public:
     explicit CDotsManager(QWidget *parent = nullptr);
@@ -66,8 +65,8 @@ public:
     void setSVGFile(QString SvgFilePath);
     QString getSVGFilePath();
 
-    QList<CDot*> getDots();
-    void addDot(CDot* Dot);
+    QList<PTDot> getDots();
+    void addDot(PTDot Dot);
     void delDot(int Index);
     uint getDotCount();
     void clearDots();
