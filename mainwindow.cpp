@@ -13,24 +13,22 @@ void MainWindow::CreateDots(uint Count, uint Size)
 {
     /***** TODO: Optimize Cleanup Code *********/
     this->RenderTimer.stop();
-    //QThread::msleep(100); //wait for timer to finish processing
-
     ui->oglDots->clearDots();
-    QSize oglDotsSize = ui->oglDots->geometry().size();
-
-    //QThread::msleep(10);
     /************ End of Cleanup Code **********/
-    QPoint ptExtent = QPoint(oglDotsSize.width()-(Size/2), oglDotsSize.height()-(Size/2));
+
+    QSize oglBoundary = ui->oglDots->geometry().size();
 
     for ( uint udot = 0; udot < Count; udot++ )
     {
-        CDot* dot = new CDot();
-        dot->setPos(QPoint(rand()%ptExtent.x(),rand()%ptExtent.y()));
-        dot->setMovement((CDot::Movement)(rand()%2), (CDot::Movement)(rand()%2));
-        dot->setSpeed(QPoint(rand()%15 - 5, rand()%15 - 5));
-        dot->setColor((eColor)(rand()%6+1));
-        dot->setSize(Size);
-        dot->setId(udot);
+        PTDot dot = new TDot;
+        dot->setRandomPosition(oglBoundary);
+        dot->setRandomDirection();
+        dot->setRandomColor();
+        //int rSize = (int)((float)Size * (5.0f/(float)(rand()%20+1)));
+        int rSize = Size;
+        dot->m_Size = rSize;
+        dot->m_Radius = rSize / 2;
+        dot->m_Id = udot;
         //qDebug() << "Dot#" << dot->getId() << " Random Speed: " << dot->getSpeed() << " Random Color: " << (int)dot->getColor();
         //qDebug() << "Dot#" << dot->getId() << ": Speed: " << Speed << " Dir: " << (uint)dot->getXDirection() << "," << (uint)dot->getYDirection() << " Pos: " << dot->getLocation();
 
@@ -52,7 +50,6 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    QEvent resizeEvent = QEvent(QEvent::Resize);
 
     ui->btnNextBackColor->connect(ui->btnNextBackColor,&QPushButton::clicked,[this]()
     {
@@ -129,9 +126,6 @@ MainWindow::MainWindow(QWidget *parent)
     //  is in fact trying to click to help make the game a more enjoyable
     //  experience (and allows for better control... <crosses fingers/>)
 
-    //ui->oglDots->setParent(ui->frmDrawBox);
-    //ui->oglDots->setBounds(ui->frmDrawBox->geometry().size());
-    //ui->oglDots->setLayout(ui->gridLayout);
     ui->oglDots->setSVGFile(":/images/circle.svg");
     ui->oglDots->show();
     ui->oglDots->raise();
@@ -176,11 +170,17 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->btnQuit->connect(ui->btnQuit, &QPushButton::clicked, qApp, &QCoreApplication::quit);
 
-    // Create the initial set of dots
-    CreateDots((uint)(ui->sldrDots->value()), (uint)(ui->sldrDotSize->value()));
 
     // Start the timer with the awesome lambda inside :-)
-    RenderTimer.start(33);
+    //RenderTimer.start(33);
+}
+
+
+void MainWindow::showEvent(QShowEvent *event) {
+    // Create the initial set of dots, doing this in the showEvent
+    //  ensures the geometry is sized by the layout manager first
+    CreateDots((uint)(ui->sldrDots->value()), (uint)(ui->sldrDotSize->value()));
+    QWidget::showEvent(event);
 }
 
 MainWindow::~MainWindow()

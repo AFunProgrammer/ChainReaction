@@ -104,48 +104,38 @@ void CDotsManager::createDotPixmaps()
     }
 }
 
-void CDotsManager::setDotPixmap(CDot* Dot)
+void CDotsManager::setDotPixmap(PTDot Dot)
 {
-    Dot->setScale(1.0f);
-    Dot->setScaleMax(3.0f);
-
-    Dot->setPixmap(&m_DotPixmaps[Dot->getColor()]);
+    Dot->m_MaxScale = 3.0f;
+    Dot->m_Pixmap = m_DotPixmaps[Dot->m_Color];
 }
-
-QRect CDotsManager::getMaxDotBoundary(uint DotSize){
-    QSize boxSize = this->geometry().size();
-    QRect rectBounds = QRect(DotSize/2,DotSize/2,boxSize.width()-DotSize/2,boxSize.height()-DotSize/2);
-    return rectBounds;
-}
-
 
 void CDotsManager::setDotsDrawBoundary()
 {
-    uint dotSize = m_Dots[0]->getSize();
-    QRect rectBounds = getMaxDotBoundary(dotSize);
+    QSize Bounds = this->geometry().size();
 
-    for(CDot* dot: m_Dots)
+    for(PTDot dot: m_Dots)
     {
-        dot->setBounds(rectBounds);
+        dot->m_BoxBounds = Bounds;
     }
 }
 
-void CDotsManager::setDotSize(CDot* Dot)
+void CDotsManager::setDotSize(PTDot Dot)
 {
     setDotPixmap(Dot);
 }
 
 
-QList<CDot*> CDotsManager::getDots()
+QList<PTDot> CDotsManager::getDots()
 {
     return m_Dots;
 }
 
-void CDotsManager::addDot(CDot* Dot)
+void CDotsManager::addDot(PTDot Dot)
 {
     if ( Dot != nullptr )
     {
-        Dot->setBounds(getMaxDotBoundary(Dot->getSize()));
+        Dot->m_BoxBounds = this->geometry().size();
         setDotPixmap(Dot);
         m_Dots.append(Dot);
         m_RemovedDots.resize(m_Dots.count());
@@ -168,12 +158,12 @@ uint CDotsManager::getDotCount()
 
 void CDotsManager::clearDots()
 {
-    for(CDot* dot: m_Dots)
+    for(PTDot dot: m_Dots)
     {
         delete dot;
     }
 
-    for(CDot* dot: m_RemovedDots)
+    for(PTDot dot: m_RemovedDots)
     {
         delete dot;
     }
@@ -190,13 +180,13 @@ void CDotsManager::setDotsSize(uint Size)
 
 void CDotsManager::updateDots()
 {
-    QList<CDot*> resizingDots;
+    QList<PTDot> resizingDots;
 
     uint uDots = m_Dots.count();
 
     for(uint uDot = 0; uDot < uDots; uDot++ )
     {
-        if ( m_Dots[uDot]->isStopped() )
+        if ( m_Dots[uDot]->m_Exploded )
         {
             m_RemovedDots.append(m_Dots[uDot]);
             m_Dots.removeAt(uDot);
@@ -206,7 +196,7 @@ void CDotsManager::updateDots()
         else
         {
             m_Dots[uDot]->update();
-            if ( m_Dots[uDot]->isResizing() )
+            if ( m_Dots[uDot]->m_Touched )
             {
                 //setDotPixmap(m_Dots[uDot]);
                 resizingDots.append(m_Dots[uDot]);
@@ -216,9 +206,10 @@ void CDotsManager::updateDots()
 
     if ( m_UpdateDotsSize > 0 )
     {
-        for(CDot* dot: m_Dots)
+        for(PTDot dot: m_Dots)
         {
-            dot->setSize(m_UpdateDotsSize);
+            dot->m_Size = m_UpdateDotsSize;
+            dot->m_Radius = m_UpdateDotsSize / 2;
         }
     }
 
@@ -230,11 +221,11 @@ void CDotsManager::drawDots(QPainter* Painter)
     //QBrush colorBrush = QBrush(Qt::red);
     //Painter->setPen(QPen(m_ClearColor,1,Qt::PenStyle::SolidLine));
     //Painter->setBrush(colorBrush);
-    for( CDot* dot: m_Dots )
+    for( PTDot dot: m_Dots )
     {
         //colorBrush.setColor(dot->getColor());
         //Painter->drawEllipse(dot->getDrawRect());
-        Painter->drawPixmap(dot->getDrawRect(), *(dot->getPixmap()));
+        Painter->drawPixmap(dot->getDrawRect(), dot->m_Pixmap);
 
         //QImage image = dot->getPixmap()->toImage();
         //QString format = QString("bpp: ") + std::to_string(image.pixelFormat().bitsPerPixel()).c_str() + " format: " + std::to_string(image.format()).c_str();
@@ -243,25 +234,25 @@ void CDotsManager::drawDots(QPainter* Painter)
     }
 }
 
-void CDotsManager::checkForCollisions(QList<CDot*> resizingDots)
+void CDotsManager::checkForCollisions(QList<PTDot> resizingDots)
 {
     if ( resizingDots.count() > 0 )
     {
-        for(CDot* dot: resizingDots)
+        for(PTDot dot: resizingDots)
         {
-            for(CDot* cmp: m_Dots)
+            for(PTDot cmp: m_Dots)
             {
-                if ( dot->getId() != cmp->getId() && cmp->isResizing() == false )
+                if ( dot->m_Id != cmp->m_Id && cmp->m_Touched == false )
                 {
-                    uint uiCrossProduct = CUtility::getCrossProduct(dot->getPos(), cmp->getPos());
+                    uint uiCrossProduct = CUtility::getCrossProduct(dot->m_Position, cmp->m_Position);
                     //float fXProduct = sqrt(pow((dot->getPos().x() - cmp->getPos().x()),2) +
                     //                       pow((dot->getPos().y() - cmp->getPos().y()),2));
 
-                    uint uiDotDistance = dot->getSize() / 2 + cmp->getSize() / 2;
+                    uint uiDotDistance = dot->m_Radius + cmp->m_Radius;
 
                     if (uiCrossProduct <= uiDotDistance)
                     {
-                        cmp->startResizing();
+                        cmp->m_Touched = true;
                         m_Collisions++;
                         //qDebug() << "Dot: " << dot->objectName() << " cross: " << fXProduct << " " << cmp->objectName() << " bounds: " << cmp->getBounds() << " " << dot->objectName() << " bounds: " << dot->getBounds();
                     }
@@ -318,10 +309,11 @@ void CDotsManager::mousePressEvent(QMouseEvent *event)
     {
         if ( clickArea.intersects(m_Dots[iDot]->getDrawRect()) )
         {
+            PTDot inArea = m_Dots[iDot];
             if ( closestDotToClick != -1 )
             {
-                ulong uNewDot = CUtility::getCrossProduct(m_Dots[iDot]->getPos(), clickPos);
-                ulong uDot = CUtility::getCrossProduct(m_Dots[closestDotToClick]->getPos(), clickPos);
+                ulong uNewDot = CUtility::getCrossProduct(inArea->m_Position, clickPos);
+                ulong uDot = CUtility::getCrossProduct(m_Dots[closestDotToClick]->m_Position, clickPos);
                 if ( uNewDot < uDot )
                     closestDotToClick = iDot;
             }
@@ -331,7 +323,7 @@ void CDotsManager::mousePressEvent(QMouseEvent *event)
     }
 
     if ( closestDotToClick >= 0 )
-        m_Dots[closestDotToClick]->startResizing();
+        m_Dots[closestDotToClick]->m_Touched = true;
 
 }
 
