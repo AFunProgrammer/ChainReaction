@@ -9,7 +9,7 @@
 #include <QWidget>
 #include <QtOpenGLWidgets/QOpenGLWidget>
 
-#include "cdot.h"
+#include "tdot.h"
 
 class CDotsManager : public QOpenGLWidget
 {
@@ -46,7 +46,7 @@ private:
 
     static bool m_ClickLock;
 
-    QPixmap getSVGPixmap(eColor Color, QPointF Scale, uint Size);
+    QPixmap getSVGPixmap(eColor Color, uint Size);
     void createDotPixmaps();
 
     void setDotPixmap(PTDot Dot);

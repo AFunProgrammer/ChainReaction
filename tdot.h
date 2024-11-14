@@ -1,5 +1,5 @@
-#ifndef CDOT_H
-#define CDOT_H
+#ifndef TDOT_H
+#define TDOT_H
 
 #pragma once
 #include <QPixmap>
@@ -9,7 +9,7 @@
 #include "cutility.h"
 
 
-typedef struct _DOT{
+typedef struct t_Dot{
     unsigned m_Id = 0;
 
     eColor m_Color = eColor::red;
@@ -114,4 +114,4 @@ typedef struct _DOT{
 }TDot,*PTDot;
 
 
-#endif // CDot
+#endif // TDot
