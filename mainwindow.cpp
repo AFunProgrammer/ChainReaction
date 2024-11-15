@@ -17,6 +17,8 @@ void MainWindow::CreateDots(uint Count, uint Size)
     /************ End of Cleanup Code **********/
 
     QSize oglBoundary = ui->oglDots->geometry().size();
+    // Account for radius
+    oglBoundary = QSize(oglBoundary.width() - Size, oglBoundary.height() - Size);
 
     for ( uint udot = 0; udot < Count; udot++ )
     {
