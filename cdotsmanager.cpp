@@ -291,24 +291,12 @@ void CDotsManager::resizeEvent(QResizeEvent *event){
 
 void CDotsManager::mousePressEvent(QMouseEvent *event)
 {
-    QPainter qpMeasure(this);
     QPoint clickPos = event->pos();
-    QRect clickArea = QRect(0,0,0,0);
-
-    float fDpcmX = (float)qpMeasure.device()->logicalDpiX() / 2.54f;
-    float fDpcmY = (float)qpMeasure.device()->logicalDpiY() / 2.54f;
-
     //Click area is considered the 'nice' area of being clicked in
     // allowing for 'fat' finger touch to select a specific spot
     // within a region and allowing for making mistakes but
     // still having the pleasure of using touch
-    clickArea.setX(clickPos.x() - (int)(fDpcmX/2.0f) );
-    clickArea.setY(clickPos.y() - (int)(fDpcmY/2.0f) );
-    clickArea.setWidth((int)(fDpcmX) );
-    clickArea.setHeight((int)(fDpcmY) );
-
-    unsigned int iDots = m_Dots.count();
-    int closestDotToClick = -1;
+    QRect clickArea = QRect(clickPos.x()-24,clickPos.y()-24,48,48);
 
     QVector<PTDot> Dots = m_Manager.getNearestDots(clickPos);
     PTDot closest = nullptr;

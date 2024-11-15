@@ -40,42 +40,26 @@ void CSpatialManager::createManager(QSize WindowSize){
 }
 
 void CSpatialManager::updateDot(PTDot Dot){
-    QVector<QString> touchedCells = getTouchedCellsLookup(Dot);
-    QVector<QString> savedCells = getCellLookupsFromDot(Dot);
-    QSet<QString> newCells = QSet<QString>(touchedCells.begin(),touchedCells.end());
-    QSet<QString> prevCells = QSet<QString>(savedCells.begin(),savedCells.end());
+    QString cell = getCellFromPoint(Dot);
+    QString lastCell = getCellLookupFromDot(Dot);
 
-    saveCellLookupsToDot(touchedCells, Dot);
-
-
-    // Find unique elements in touchedCells that aren't in prevCells
-    QSet<QString> nowInCells = newCells - prevCells;
-
-    // Find unique elements in prevCells that aren't in touchedCells
-    QSet<QString> notInCells = prevCells - newCells;
-
-    for( QString cellLookup: nowInCells ){
-        m_Space[cellLookup][Dot->m_Id] = Dot;
-    }
-
-    for( QString cellLookup: notInCells ){
-        m_Space[cellLookup].remove(Dot->m_Id);
+    if ( cell.compare(lastCell) != 0 ){
+        saveCellLookupToDot(cell, Dot);
+        m_Space[lastCell].remove(Dot->m_Id);
+        m_Space[cell][Dot->m_Id] = Dot;
     }
 }
 
 void CSpatialManager::removeDot(PTDot Dot){
-    QVector<QString> cells = getCellLookupsFromDot(Dot);
+    QString cell = getCellLookupFromDot(Dot);
 
-    for( QString cellLookup: cells ){
-        m_Space[cellLookup].remove(Dot->m_Id);
-    }
+    m_Space[cell].remove(Dot->m_Id);
 }
 
 
 QVector<PTDot> CSpatialManager::getNearestDots(PTDot Dot){
     QVector<PTDot> nearestDots = QVector<PTDot>();
-
-    QVector<QString> cells = getCellLookupsFromDot(Dot);
+    QVector<QString> cells = getCellsFromBB(Dot);
 
     for( QString cellLookup: cells ){
         nearestDots.append(m_Space[cellLookup].values());
@@ -94,8 +78,7 @@ QVector<PTDot> CSpatialManager::getNearestDots(QPoint Point){
 }
 
 
-
-QVector<QString> CSpatialManager::getTouchedCellsLookup(PTDot Dot){
+QVector<QString> CSpatialManager::getCellsFromBB(PTDot Dot){
     QVector<QString> cells = QVector<QString>();
     QVector<QPoint> corners;
     QRect dotRect = Dot->getDrawRect();
@@ -116,17 +99,18 @@ QVector<QString> CSpatialManager::getTouchedCellsLookup(PTDot Dot){
         cells.append(QString("%0.%1").arg(pt.x()).arg(pt.y()));
     }
 
-//#if defined(QT_DEBUG)
-//    for( QString str: cells ){
-//        if ( str[0] == QString("4") || str[2] == QString("4") )
-//            asm("int $3");
-//    }
-//    Q_ASSERT(cells.size() < 5);
-//#endif
-
     return cells;
 }
 
+
+QString CSpatialManager::getCellFromPoint(PTDot Dot){
+    unsigned colGuess = Dot->m_Position.x() / m_CellSize.width();
+    unsigned rowGuess = Dot->m_Position.y() / m_CellSize.height();
+
+    QString lookup = QString("%0.%1").arg(colGuess).arg(rowGuess);
+
+    return lookup;
+}
 
 QString CSpatialManager::getCellFromPoint(QPoint Point){
     unsigned colGuess = Point.x() / m_CellSize.width();
@@ -152,7 +136,7 @@ QRect CSpatialManager::getDotCellsAsRect(PTDot Dot){
     int bottom = 0;
     int left = 999999;
     int right = 0;
-    QVector<QString> lookups = getTouchedCellsLookup(Dot);
+    QVector<QString> lookups = getCellsFromBB(Dot);
 
     for( QString lookup: lookups ){
         QRect rect;
@@ -160,7 +144,7 @@ QRect CSpatialManager::getDotCellsAsRect(PTDot Dot){
         if (m_Cells.contains(lookup))
             rect = m_Cells[lookup];
         else
-            asm("int $3");
+            qDebug() << "Do a Breakpoint Here If You See This Message";
 #else
         rect = m_Cells[lookup];
 #endif
@@ -177,26 +161,14 @@ QRect CSpatialManager::getDotCellsAsRect(PTDot Dot){
     return QRect(left,top,right-left,bottom-top);
 }
 
-QVector<QString> CSpatialManager::getCellLookupsFromDot(PTDot Dot){
-    QVector<QString> lookups;
-
-    for( int lookup = 0; lookup < Dot->m_Cells; lookup++ ){
-        lookups.append(QString::fromWCharArray(Dot->m_CellLookups[lookup],3));
-    }
-
-    return lookups;
+QString CSpatialManager::getCellLookupFromDot(PTDot Dot){
+    QString lookup = QString::fromWCharArray(Dot->m_CellLookup,3);
+    return lookup;
 }
 
 
-void CSpatialManager::saveCellLookupsToDot(QVector<QString> Lookups, PTDot Dot){
-    int count = 0;
-
-    Dot->m_Cells = Lookups.size();
-
-    for ( QString lookup: Lookups ){
-        lookup.toWCharArray(Dot->m_CellLookups[count]);
-        count++;
-    }
+void CSpatialManager::saveCellLookupToDot(QString Lookup, PTDot Dot){
+    Lookup.toWCharArray(Dot->m_CellLookup);
 }
 
 
