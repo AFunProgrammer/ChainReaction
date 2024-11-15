@@ -29,16 +29,10 @@ void MainWindow::CreateDots(uint Count, uint Size)
         dot->m_Size = rSize;
         dot->m_Radius = rSize / 2;
         dot->m_Id = udot;
-        //qDebug() << "Dot#" << dot->getId() << " Random Speed: " << dot->getSpeed() << " Random Color: " << (int)dot->getColor();
-        //qDebug() << "Dot#" << dot->getId() << ": Speed: " << Speed << " Dir: " << (uint)dot->getXDirection() << "," << (uint)dot->getYDirection() << " Pos: " << dot->getLocation();
 
         ui->oglDots->addDot(dot);
     }
 
-    //qDebug() << "Number of Dots: " << _ListOfDots.count();
-    //_ClickCap.raise();
-    //_ClickCap.show();
-    //_ClickCap.update();
     RenderTimer.start(33);
 }
 

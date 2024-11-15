@@ -5,6 +5,7 @@
 #include <QPixmap>
 #include <QPoint>
 #include <QObject>
+#include <QVector>
 
 #include "cutility.h"
 
@@ -17,6 +18,7 @@ typedef struct t_Dot{
     int m_Radius = 5;
     float m_Scale = 1.0f;
     QPoint m_Position = QPoint(0,0);
+    QPoint m_Previous = QPoint(0,0);
 
     bool m_Touched = false; // If !m_Touched then moving
     bool m_Exploded = false; // If m_Touched and !m_Exploded then currently exploding
@@ -26,6 +28,10 @@ typedef struct t_Dot{
 
     QSize m_BoxBounds = QSize(0,0);
     float m_MaxScale = 3.0f;
+
+    // to efficiently track cell information
+    int m_Cells = 0;
+    wchar_t m_CellLookups[4][10];
 
     QPixmap m_Pixmap;
 
@@ -49,6 +55,7 @@ typedef struct t_Dot{
     void update(){
         if ( !m_Touched ){
             //Update movement
+            m_Previous = m_Position;
 
             // X check, is outside box bounds, if not then move in direction
             if ( m_Direction.x() > 0 && (m_Position.x() + m_Radius) >= m_BoxBounds.width()) {
@@ -99,17 +106,15 @@ typedef struct t_Dot{
 
     QRect getDrawRect()
     {
-        float fRadius = m_Size * 0.5f;
-        QRectF HalfPixelMeasure((float)m_Position.x() - ((float)m_Radius*m_Scale * 0.5),
-                                (float)m_Position.y() - ((float)fRadius*m_Scale * 0.5),
-                                ((float)m_Radius*m_Scale),
-                                ((float)m_Radius*m_Scale));
+        float scaledSize = m_Size * m_Scale;
+        float scaledRadius = scaledSize * 0.5f;
 
-        QRect Bounds = QRect((int)HalfPixelMeasure.x(), (int)HalfPixelMeasure.y(), (int)HalfPixelMeasure.width(), (int)HalfPixelMeasure.height());
+        QRectF BoundsF((float)m_Position.x() - scaledRadius,
+                       (float)m_Position.y() - scaledRadius,
+                       scaledSize,
+                       scaledSize);
 
-        //qDebug() << "Dot: " << objectName() << " Position: " << m_Position << " Draw Rect: " << Bounds << " Half Pixel Measure: " << HalfPixelMeasure ;
-
-        return Bounds;
+        return BoundsF.toAlignedRect();
     }
 }TDot,*PTDot;
 
