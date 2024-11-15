@@ -170,6 +170,7 @@ void CDotsManager::clearDots()
 
     m_Dots.clear();
     m_RemovedDots.clear();
+    m_Manager.createManager(geometry().size());
 }
 
 void CDotsManager::setDotsSize(uint Size)
@@ -189,13 +190,17 @@ void CDotsManager::updateDots()
         if ( m_Dots[uDot]->m_Exploded )
         {
             m_RemovedDots.append(m_Dots[uDot]);
+            m_Manager.removeDot(m_Dots[uDot]);
+
             m_Dots.removeAt(uDot);
+
             uDots--;
             uDot--;
         }
         else
         {
             m_Dots[uDot]->update();
+            m_Manager.updateDot(m_Dots[uDot]);
             if ( m_Dots[uDot]->m_Touched )
             {
                 //setDotPixmap(m_Dots[uDot]);
@@ -240,22 +245,20 @@ void CDotsManager::checkForCollisions(QList<PTDot> resizingDots)
     {
         for(PTDot dot: resizingDots)
         {
-            for(PTDot cmp: m_Dots)
-            {
-                if ( dot->m_Id != cmp->m_Id && cmp->m_Touched == false )
+            QVector<PTDot> nearestDots = m_Manager.getNearestDots(dot);
+
+            for( PTDot nearDot: nearestDots ){
+                if ( nearDot->m_Touched )
+                    continue;
+
+                uint uiCrossProduct = CUtility::getCrossProduct(dot->m_Position, nearDot->m_Position);
+                uint uiDotDistance = dot->m_Radius + nearDot->m_Radius;
+
+                if (uiCrossProduct <= uiDotDistance)
                 {
-                    uint uiCrossProduct = CUtility::getCrossProduct(dot->m_Position, cmp->m_Position);
-                    //float fXProduct = sqrt(pow((dot->getPos().x() - cmp->getPos().x()),2) +
-                    //                       pow((dot->getPos().y() - cmp->getPos().y()),2));
-
-                    uint uiDotDistance = dot->m_Radius + cmp->m_Radius;
-
-                    if (uiCrossProduct <= uiDotDistance)
-                    {
-                        cmp->m_Touched = true;
-                        m_Collisions++;
-                        //qDebug() << "Dot: " << dot->objectName() << " cross: " << fXProduct << " " << cmp->objectName() << " bounds: " << cmp->getBounds() << " " << dot->objectName() << " bounds: " << dot->getBounds();
-                    }
+                    nearDot->m_Touched = true;
+                    m_Collisions++;
+                    //qDebug() << "Dot: " << dot << " Near Dot: " << nearDot;
                 }
             }
         }
@@ -307,24 +310,27 @@ void CDotsManager::mousePressEvent(QMouseEvent *event)
     unsigned int iDots = m_Dots.count();
     int closestDotToClick = -1;
 
-    for( uint iDot = 0; iDot < iDots; iDot++ )
+    QVector<PTDot> Dots = m_Manager.getNearestDots(clickPos);
+    PTDot closest = nullptr;
+
+    for( PTDot dot : Dots )
     {
-        if ( clickArea.intersects(m_Dots[iDot]->getDrawRect()) )
+        if ( clickArea.intersects(dot->getDrawRect()) )
         {
-            if ( closestDotToClick != -1 )
+            if ( closest != nullptr )
             {
-                ulong uNewDot = CUtility::getCrossProduct(m_Dots[iDot]->m_Position, clickPos);
-                ulong uDot = CUtility::getCrossProduct(m_Dots[closestDotToClick]->m_Position, clickPos);
+                ulong uNewDot = CUtility::getCrossProduct(dot->m_Position, clickPos);
+                ulong uDot = CUtility::getCrossProduct(closest->m_Position, clickPos);
                 if ( uNewDot < uDot )
-                    closestDotToClick = iDot;
+                    closest = dot;
             }
             else
-               closestDotToClick = iDot;
+               closest = dot;
         }
     }
 
-    if ( closestDotToClick >= 0 )
-        m_Dots[closestDotToClick]->m_Touched = true;
+    if ( closest != nullptr)
+        closest->m_Touched = true;
 
 }
 

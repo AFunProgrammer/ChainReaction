@@ -10,7 +10,7 @@ CONFIG += c++17
 
 SOURCES += \
     cdotsmanager.cpp \
-    cspacialmanager.cpp \
+    cspatialmanager.cpp \
     cutility.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -18,7 +18,7 @@ SOURCES += \
 
 HEADERS += \
     cdotsmanager.h \
-    cspacialmanager.h \
+    cspatialmanager.h \
     cutility.h \
     mainwindow.h \
     tdot.h

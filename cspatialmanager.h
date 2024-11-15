@@ -1,5 +1,5 @@
-#ifndef CSPACIALMANAGER_H
-#define CSPACIALMANAGER_H
+#ifndef CSPATIALMANAGER_H
+#define CSPATIALMANAGER_H
 
 #pragma once
 #include <QHash>
@@ -10,11 +10,13 @@
 
 typedef QHash<QString,QMap<int,PTDot>> t_DotsSpaceData;
 
-class CSpacialManager : public QObject
+class CSpatialManager : public QObject
 {
     Q_OBJECT
 
     t_DotsSpaceData m_Space;
+
+    QSize m_WindowSize;
     QPoint m_GridSize;
     QSize m_CellSize;
 
@@ -22,11 +24,12 @@ class CSpacialManager : public QObject
 
 
     QVector<QString> getTouchedCellsLookup(PTDot Dot);
+    QString getCellFromPoint(QPoint Point);
 
     void saveCellLookupsToDot(QVector<QString> Lookups, PTDot Dot);
     QVector<QString> getCellLookupsFromDot(PTDot Dot);
 public:
-    explicit CSpacialManager(QSize WindowSize = QSize(1,1), QObject *parent = nullptr);
+    explicit CSpatialManager(QSize WindowSize = QSize(1,1), QObject *parent = nullptr);
 
     void createManager(QSize WindowSize);
 
@@ -34,6 +37,7 @@ public:
     void removeDot(PTDot Dot);
 
     QVector<PTDot> getNearestDots(PTDot Dot);
+    QVector<PTDot> getNearestDots(QPoint Point);
 
     ////////////////////////////////////////////
     // Mainly for debugging and visualization
@@ -43,4 +47,4 @@ public:
 signals:
 };
 
-#endif // CSPACIALMANAGER_H
+#endif // CSPATIALMANAGER_H

@@ -10,7 +10,7 @@
 #include <QtOpenGLWidgets/QOpenGLWidget>
 
 #include "tdot.h"
-#include "cspacialmanager.h"
+#include "cspatialmanager.h"
 
 
 class CDotsManager : public QOpenGLWidget
@@ -44,7 +44,7 @@ private:
     QList<PTDot> m_Dots;
     QList<PTDot> m_RemovedDots;
 
-    CSpacialManager m_Manager;
+    CSpatialManager m_Manager;
 
     std::map<eColor, QPixmap> m_DotPixmaps;
 
