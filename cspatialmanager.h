@@ -23,11 +23,12 @@ class CSpatialManager : public QObject
     QHash<QString,QRect> m_Cells;
 
 
-    QVector<QString> getTouchedCellsLookup(PTDot Dot);
+    QVector<QString> getCellsFromBB(PTDot Dot);
+    QString getCellFromPoint(PTDot Dot);
     QString getCellFromPoint(QPoint Point);
 
-    void saveCellLookupsToDot(QVector<QString> Lookups, PTDot Dot);
-    QVector<QString> getCellLookupsFromDot(PTDot Dot);
+    void saveCellLookupToDot(QString Lookup, PTDot Dot);
+    QString getCellLookupFromDot(PTDot Dot);
 public:
     explicit CSpatialManager(QSize WindowSize = QSize(1,1), QObject *parent = nullptr);
 

@@ -1,6 +1,7 @@
 #ifndef TDOT_H
 #define TDOT_H
 
+#include <random>
 #pragma once
 #include <QPixmap>
 #include <QPoint>
@@ -8,6 +9,10 @@
 #include <QVector>
 
 #include "cutility.h"
+
+#if defined(QT_DEBUG)
+#include <QDebug>
+#endif
 
 
 typedef struct t_Dot{
@@ -30,25 +35,33 @@ typedef struct t_Dot{
     float m_MaxScale = 3.0f;
 
     // to efficiently track cell information
-    int m_Cells = 0;
-    wchar_t m_CellLookups[4][10];
+    wchar_t m_CellLookup[10];
 
     QPixmap m_Pixmap;
 
-    void setRandomColor(){
-        m_Color = (eColor)(rand()%6+1);
+    void setRandomColor() {
+        static std::uniform_int_distribution<int> dist(1, 6);
+        static std::mt19937 rng(std::random_device{}());
+        m_Color = (eColor)dist(rng);
     }
 
-    void setRandomDirection(){
-        int rDirX = rand()%2 * 2 - 1;
-        int rDirY = rand()%2 * 2 - 1;
-        int DirX = rand()%6 + 2;
-        int DirY = rand()%6 + 2;
-        m_Direction = QPoint(rDirX * DirX, rDirY * DirY);
+    void setRandomDirection() {
+        static std::uniform_int_distribution<int> distDir(2, 6);
+        static std::uniform_int_distribution<int> distSign(0, 1);  // Random choice for sign (0 or 1)
+        static std::mt19937 rng(std::random_device{}());
+
+        // Ensuring the direction is always either -1 or 1, never 0
+        int rDirX = (distSign(rng) == 0) ? -1 : 1;  // Random -1 or 1 for X direction
+        int rDirY = (distSign(rng) == 0) ? -1 : 1;  // Random -1 or 1 for Y direction
+        m_Direction = QPoint(rDirX * distDir(rng), rDirY * distDir(rng));
     }
 
-    void setRandomPosition(QSize Bounds){
-        m_Position = QPoint(rand()%Bounds.width(),rand()%Bounds.height());
+    void setRandomPosition(QSize Bounds) {
+        static std::uniform_int_distribution<int> distX(0, Bounds.width());
+        static std::uniform_int_distribution<int> distY(0, Bounds.height());
+        static std::mt19937 rng(std::random_device{}());
+
+        m_Position = QPoint(distX(rng), distY(rng));
     }
 
     // Updates position, movement, size
@@ -102,7 +115,6 @@ typedef struct t_Dot{
             }
         }
     }
-
 
     QRect getDrawRect()
     {
