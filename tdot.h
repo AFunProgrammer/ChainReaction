@@ -19,6 +19,7 @@ typedef struct t_Dot{
     unsigned m_Id = 0;
 
     eColor m_Color = eColor::red;
+    int m_BaseSize = 10;
     int m_Size = 10;
     int m_Radius = 5;
     float m_Scale = 1.0f;
@@ -35,9 +36,15 @@ typedef struct t_Dot{
     float m_MaxScale = 3.0f;
 
     // to efficiently track cell information
-    wchar_t m_CellLookup[10];
+    TCharID m_CellLookup;
 
     QPixmap m_Pixmap;
+
+    void setBaseSize(int Size){
+        m_BaseSize = Size;
+        m_Size = Size;
+        m_Radius = Size / 2;
+    }
 
     void setRandomColor() {
         static std::uniform_int_distribution<int> dist(1, 6);
@@ -57,9 +64,9 @@ typedef struct t_Dot{
     }
 
     void setRandomPosition(QSize Bounds) {
-        static std::uniform_int_distribution<int> distX(0, Bounds.width());
-        static std::uniform_int_distribution<int> distY(0, Bounds.height());
-        static std::mt19937 rng(std::random_device{}());
+        std::uniform_int_distribution<int> distX(0, Bounds.width());
+        std::uniform_int_distribution<int> distY(0, Bounds.height());
+        std::mt19937 rng(std::random_device{}());
 
         m_Position = QPoint(distX(rng), distY(rng));
     }
@@ -113,18 +120,20 @@ typedef struct t_Dot{
                     m_Exploded = true;
                 }
             }
+
+            m_Size = m_BaseSize * m_Scale;
+            m_Radius = m_Size / 2;
         }
     }
 
     QRect getDrawRect()
     {
-        float scaledSize = m_Size * m_Scale;
-        float scaledRadius = scaledSize * 0.5f;
+        QRectF BoundsF((float)m_Position.x() - m_Radius,
+                       (float)m_Position.y() - m_Radius,
+                       m_Size,
+                       m_Size);
 
-        QRectF BoundsF((float)m_Position.x() - scaledRadius,
-                       (float)m_Position.y() - scaledRadius,
-                       scaledSize,
-                       scaledSize);
+        //qDebug() << " Touched: " << m_Touched << " Exploded: " << m_Exploded << " Scale: " << m_Scale << " Size: " << m_Size << " Size: " << BoundsF;
 
         return BoundsF.toAlignedRect();
     }

@@ -3,6 +3,21 @@
 #include <QSet>
 #include <QtMath>
 
+
+// Define qHash for t_CharID without using QString
+inline uint qHash(const t_CharID& key, uint seed = 0) {
+    // Start with the initial seed
+    uint hash = seed;
+
+    // Simple hash computation based on m_CellLookup array
+    for (int i = 0; i < 3; ++i) {
+        hash = hash * 31 + key.m_CharID[i]; // Using a small prime (31) for hashing
+    }
+
+    return hash;
+}
+
+
 CSpatialManager::CSpatialManager(QSize WindowSize, QObject *parent)
     : QObject{parent}
 {
@@ -13,7 +28,7 @@ CSpatialManager::CSpatialManager(QSize WindowSize, QObject *parent)
 void CSpatialManager::createManager(QSize WindowSize){
     bool bPortrait = (WindowSize.height() > WindowSize.width() ? true : false);
     float fRatio = (float)WindowSize.width() / (float)WindowSize.height();
-    unsigned maxRect = 4;
+    unsigned maxRect = 5;
 
     fRatio = (bPortrait ? fRatio : 1/fRatio);
 
@@ -28,7 +43,7 @@ void CSpatialManager::createManager(QSize WindowSize){
 
     for( unsigned iCol=0; iCol < cols; iCol++ ){
         for( unsigned iRow=0; iRow < rows; iRow++ ){
-            QString lookup = QString("%0.%1").arg(iCol).arg(iRow);
+            TCharID lookup = std::make_tuple<int,int>(iCol,iRow);
 
             m_Space[lookup] = QMap<int,PTDot>();
             m_Cells[lookup] = QRect(iCol * m_CellSize.width(),
@@ -40,18 +55,18 @@ void CSpatialManager::createManager(QSize WindowSize){
 }
 
 void CSpatialManager::updateDot(PTDot Dot){
-    QString cell = getCellFromPoint(Dot);
-    QString lastCell = getCellLookupFromDot(Dot);
+    TCharID cell = getCellFromPoint(Dot);
+    TCharID lastCell = Dot->m_CellLookup;
 
-    if ( cell.compare(lastCell) != 0 ){
-        saveCellLookupToDot(cell, Dot);
+    if ( cell != lastCell ){
+        Dot->m_CellLookup = cell;
         m_Space[lastCell].remove(Dot->m_Id);
         m_Space[cell][Dot->m_Id] = Dot;
     }
 }
 
 void CSpatialManager::removeDot(PTDot Dot){
-    QString cell = getCellLookupFromDot(Dot);
+    TCharID cell = Dot->m_CellLookup;
 
     m_Space[cell].remove(Dot->m_Id);
 }
@@ -59,9 +74,9 @@ void CSpatialManager::removeDot(PTDot Dot){
 
 QVector<PTDot> CSpatialManager::getNearestDots(PTDot Dot){
     QVector<PTDot> nearestDots = QVector<PTDot>();
-    QVector<QString> cells = getCellsFromBB(Dot);
+    QVector<TCharID> cells = getCellsFromBB(Dot);
 
-    for( QString cellLookup: cells ){
+    for( TCharID cellLookup: cells ){
         nearestDots.append(m_Space[cellLookup].values());
     }
 
@@ -70,7 +85,7 @@ QVector<PTDot> CSpatialManager::getNearestDots(PTDot Dot){
 
 QVector<PTDot> CSpatialManager::getNearestDots(QPoint Point){
     QVector<PTDot> nearestDots = QVector<PTDot>();
-    QString cellLookup = getCellFromPoint(Point);
+    TCharID cellLookup = getCellFromPoint(Point);
 
     nearestDots.append(m_Space[cellLookup].values());
 
@@ -78,8 +93,8 @@ QVector<PTDot> CSpatialManager::getNearestDots(QPoint Point){
 }
 
 
-QVector<QString> CSpatialManager::getCellsFromBB(PTDot Dot){
-    QVector<QString> cells = QVector<QString>();
+QVector<TCharID> CSpatialManager::getCellsFromBB(PTDot Dot){
+    QVector<TCharID> cells = QVector<TCharID>();
     QVector<QPoint> corners;
     QRect dotRect = Dot->getDrawRect();
 
@@ -96,27 +111,27 @@ QVector<QString> CSpatialManager::getCellsFromBB(PTDot Dot){
         if ( pt.y() < 0 || pt.y() >= m_GridSize.y() ){
             continue;
         }
-        cells.append(QString("%0.%1").arg(pt.x()).arg(pt.y()));
+        cells.append(std::make_tuple<int,int>(pt.x(),pt.y()));
     }
 
     return cells;
 }
 
 
-QString CSpatialManager::getCellFromPoint(PTDot Dot){
+TCharID CSpatialManager::getCellFromPoint(PTDot Dot){
     unsigned colGuess = Dot->m_Position.x() / m_CellSize.width();
     unsigned rowGuess = Dot->m_Position.y() / m_CellSize.height();
 
-    QString lookup = QString("%0.%1").arg(colGuess).arg(rowGuess);
+    TCharID lookup = std::make_tuple<int,int>(colGuess,rowGuess);
 
     return lookup;
 }
 
-QString CSpatialManager::getCellFromPoint(QPoint Point){
+TCharID CSpatialManager::getCellFromPoint(QPoint Point){
     unsigned colGuess = Point.x() / m_CellSize.width();
     unsigned rowGuess = Point.y() / m_CellSize.height();
 
-    QString lookup = QString("%0.%1").arg(colGuess).arg(rowGuess);
+    TCharID lookup = std::make_tuple<int,int>(colGuess,rowGuess);
 
     return lookup;
 }
@@ -125,7 +140,7 @@ QRect CSpatialManager::getCenterPointCell(PTDot Dot){
     unsigned colGuess = Dot->m_Position.x() / m_CellSize.width();
     unsigned rowGuess = Dot->m_Position.y() / m_CellSize.height();
 
-    QString lookup = QString("%0.%1").arg(colGuess).arg(rowGuess);
+    TCharID lookup = std::make_tuple<int,int>(colGuess,rowGuess);
 
     return m_Cells[lookup];
 }
@@ -136,9 +151,9 @@ QRect CSpatialManager::getDotCellsAsRect(PTDot Dot){
     int bottom = 0;
     int left = 999999;
     int right = 0;
-    QVector<QString> lookups = getCellsFromBB(Dot);
+    QVector<TCharID> lookups = getCellsFromBB(Dot);
 
-    for( QString lookup: lookups ){
+    for( TCharID lookup: lookups ){
         QRect rect;
 #if defined(QT_DEBUG)
         if (m_Cells.contains(lookup))
@@ -160,15 +175,4 @@ QRect CSpatialManager::getDotCellsAsRect(PTDot Dot){
 
     return QRect(left,top,right-left,bottom-top);
 }
-
-QString CSpatialManager::getCellLookupFromDot(PTDot Dot){
-    QString lookup = QString::fromWCharArray(Dot->m_CellLookup,3);
-    return lookup;
-}
-
-
-void CSpatialManager::saveCellLookupToDot(QString Lookup, PTDot Dot){
-    Lookup.toWCharArray(Dot->m_CellLookup);
-}
-
 
