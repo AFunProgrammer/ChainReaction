@@ -28,8 +28,7 @@ void MainWindow::CreateDots(uint Count, uint Size)
         dot->setRandomColor();
         //int rSize = (int)((float)Size * (5.0f/(float)(rand()%20+1)));
         int rSize = Size;
-        dot->m_Size = rSize;
-        dot->m_Radius = rSize / 2;
+        dot->setBaseSize(rSize);
         dot->m_Id = udot;
 
         ui->oglDots->addDot(dot);

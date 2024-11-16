@@ -213,9 +213,10 @@ void CDotsManager::updateDots()
     {
         for(PTDot dot: m_Dots)
         {
-            dot->m_Size = m_UpdateDotsSize;
-            dot->m_Radius = m_UpdateDotsSize / 2;
+            dot->setBaseSize(m_UpdateDotsSize);
         }
+
+        m_UpdateDotsSize = 0;
     }
 
     checkForCollisions(resizingDots);

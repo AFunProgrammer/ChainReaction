@@ -8,7 +8,7 @@
 
 #include "tdot.h"
 
-typedef QHash<QString,QMap<int,PTDot>> t_DotsSpaceData;
+typedef QHash<TCharID,QMap<int,PTDot>> t_DotsSpaceData;
 
 class CSpatialManager : public QObject
 {
@@ -20,15 +20,12 @@ class CSpatialManager : public QObject
     QPoint m_GridSize;
     QSize m_CellSize;
 
-    QHash<QString,QRect> m_Cells;
+    QHash<TCharID,QRect> m_Cells;
 
 
-    QVector<QString> getCellsFromBB(PTDot Dot);
-    QString getCellFromPoint(PTDot Dot);
-    QString getCellFromPoint(QPoint Point);
-
-    void saveCellLookupToDot(QString Lookup, PTDot Dot);
-    QString getCellLookupFromDot(PTDot Dot);
+    QVector<TCharID> getCellsFromBB(PTDot Dot);
+    TCharID getCellFromPoint(PTDot Dot);
+    TCharID getCellFromPoint(QPoint Point);
 public:
     explicit CSpatialManager(QSize WindowSize = QSize(1,1), QObject *parent = nullptr);
 
