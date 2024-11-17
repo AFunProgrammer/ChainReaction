@@ -3,12 +3,11 @@
 
 #pragma once
 #include <QHash>
-#include <QMap>
 #include <QObject>
 
 #include "tdot.h"
 
-typedef QHash<TCharID,QMap<int,PTDot>> t_DotsSpaceData;
+typedef QHash<TCharID,QHash<int,PTDot>> t_DotsSpaceData;
 
 class CSpatialManager : public QObject
 {
