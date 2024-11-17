@@ -40,12 +40,13 @@ void CSpatialManager::createManager(QSize WindowSize){
     m_GridSize = QPoint(cols,rows);
 
     m_Space.clear();
+    m_Space.reserve(cols*rows);
 
     for( unsigned iCol=0; iCol < cols; iCol++ ){
         for( unsigned iRow=0; iRow < rows; iRow++ ){
             TCharID lookup = std::make_tuple<int,int>(iCol,iRow);
 
-            m_Space[lookup] = QMap<int,PTDot>();
+            m_Space[lookup] = QHash<int,PTDot>();
             m_Cells[lookup] = QRect(iCol * m_CellSize.width(),
                                     iRow * m_CellSize.height(),
                                     m_CellSize.width(),

@@ -339,22 +339,22 @@ void CDotsManager::paintEvent(QPaintEvent *event)
     drawDots(&Painter);
 
 #if defined(QT_DEBUG)
-    if ( m_Dots.size() > 0 ){
-        QRect cell = m_Manager.getCenterPointCell(m_Dots[0]);
-        QRect cells = m_Manager.getDotCellsAsRect(m_Dots[0]);
-        QRect dot = m_Dots[0]->getDrawRect();
-        QRect intersection = cell.intersected(dot);
+    //if ( m_Dots.size() > 0 ){
+    //    QRect cell = m_Manager.getCenterPointCell(m_Dots[0]);
+    //    QRect cells = m_Manager.getDotCellsAsRect(m_Dots[0]);
+    //    QRect dot = m_Dots[0]->getDrawRect();
+    //    QRect intersection = cell.intersected(dot);
 
-        Painter.setPen(Qt::red);
-        Painter.drawRect(cells);
-        Painter.setPen(Qt::white);
-        Painter.drawRect(cell);
-        Painter.setPen(Qt::white);
-        Painter.drawRect(dot);
-        Painter.setPen(Qt::yellow);
-        Painter.setBrush(Qt::darkYellow);
-        Painter.drawRect(intersection);
-    }
+    //    Painter.setPen(Qt::red);
+    //    Painter.drawRect(cells);
+    //    Painter.setPen(Qt::white);
+    //    Painter.drawRect(cell);
+    //    Painter.setPen(Qt::white);
+    //    Painter.drawRect(dot);
+    //    Painter.setPen(Qt::yellow);
+    //    Painter.setBrush(Qt::darkYellow);
+    //    Painter.drawRect(intersection);
+    //}
 #endif
 
     Painter.end();
