@@ -9,6 +9,8 @@
 #include <QApplication>
 #include <QDesktopServices>
 
+#include <QSlider>
+
 void MainWindow::CreateDots(uint Count, uint Size)
 {
     /***** TODO: Optimize Cleanup Code *********/
@@ -105,12 +107,12 @@ MainWindow::MainWindow(QWidget *parent)
         ui->oglDots->setClearColor(newColor);
     });
 
-    ui->sldrDots->connect(ui->sldrDots,&QScrollBar::valueChanged,[this](int value)
+    ui->sldrDots->connect(ui->sldrDots,&QSlider::valueChanged,[this](int value)
     {
         CreateDots((uint)value, (uint)(ui->sldrDotSize->value()));
     });
 
-    ui->sldrDotSize->connect(ui->sldrDotSize,&QScrollBar::valueChanged,[this](int value)
+    ui->sldrDotSize->connect(ui->sldrDotSize,&QSlider::valueChanged,[this](int value)
     {
         //CreateDots((uint)(ui->sldrDots->value()), (uint)value);
         ui->oglDots->setDotsSize(value);

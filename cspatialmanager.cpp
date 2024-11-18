@@ -96,23 +96,25 @@ QVector<PTDot> CSpatialManager::getNearestDots(QPoint Point){
 
 QVector<TCharID> CSpatialManager::getCellsFromBB(PTDot Dot){
     QVector<TCharID> cells = QVector<TCharID>();
-    QVector<QPoint> corners;
+    int cols[2];
+    int rows[2];
     QRect dotRect = Dot->getDrawRect();
 
-    corners.append(QPoint(dotRect.topLeft().x()/m_CellSize.width(), dotRect.topLeft().y()/m_CellSize.height()));
-    corners.append(QPoint(dotRect.topRight().x()/m_CellSize.width(), dotRect.topRight().y()/m_CellSize.height()));
-    corners.append(QPoint(dotRect.bottomLeft().x()/m_CellSize.width(), dotRect.bottomLeft().y()/m_CellSize.height()));
-    corners.append(QPoint(dotRect.bottomRight().x()/m_CellSize.width(), dotRect.bottomRight().y()/m_CellSize.height()));
+    // -----
+    // |x| |
+    // -----
+    // | |x|
+    // -----
 
-    QSet<QPoint> unique = QSet<QPoint>(corners.begin(),corners.end());
-    for( QPoint pt: unique ){
-        if ( pt.x() < 0 || pt.x() >= m_GridSize.x() ){
-            continue;
+    cols[0] = qMax(dotRect.topLeft().x()/m_CellSize.width(), 0);
+    cols[1] = qMin(dotRect.bottomRight().x()/m_CellSize.width(), m_GridSize.x()-1);
+    rows[0] = qMax(dotRect.topLeft().y()/m_CellSize.height(), 0);
+    rows[1] = qMin(dotRect.bottomRight().y()/m_CellSize.height(),m_GridSize.y()-1);
+
+    for( int col = cols[0]; col <= cols[1]; col++ ){
+        for( int row = rows[0]; row <= rows[1]; row++ ){
+            cells.append(TCharID(col,row));
         }
-        if ( pt.y() < 0 || pt.y() >= m_GridSize.y() ){
-            continue;
-        }
-        cells.append(std::make_tuple<int,int>(pt.x(),pt.y()));
     }
 
     return cells;
