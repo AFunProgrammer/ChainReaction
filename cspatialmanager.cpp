@@ -76,6 +76,13 @@ void CSpatialManager::removeDot(PTDot Dot){
 QVector<PTDot> CSpatialManager::getNearestDots(PTDot Dot){
     QVector<PTDot> nearestDots = QVector<PTDot>();
     QVector<TCharID> cells = getCellsFromBB(Dot);
+    int size = 0;
+
+    for (TCharID cellLookup : cells) {
+        size += m_Space[cellLookup].size();
+    }
+
+    nearestDots.reserve(size);
 
     for( TCharID cellLookup: cells ){
         nearestDots.append(m_Space[cellLookup].values());
