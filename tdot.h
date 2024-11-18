@@ -53,7 +53,7 @@ typedef struct t_Dot{
     }
 
     void setRandomDirection() {
-        static std::uniform_int_distribution<int> distDir(2, 6);
+        static std::uniform_int_distribution<int> distDir(1, 5);
         static std::uniform_int_distribution<int> distSign(0, 1);  // Random choice for sign (0 or 1)
         static std::mt19937 rng(std::random_device{}());
 

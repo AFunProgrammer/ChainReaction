@@ -27,10 +27,17 @@ typedef struct t_CharID {
     char m_CharID[3] = {}; // Default initialize the array
 
     // Default constructor
-    t_CharID(char c1 = '\0', char c2 = '\0', char c3 = '\0') {
+    explicit t_CharID(char c1 = '\0', char c2 = '\0', char c3 = '\0') {
         m_CharID[0] = c1;
         m_CharID[1] = c2;
         m_CharID[2] = c3;
+    }
+
+    // Default constructor
+    t_CharID(int Col, int Row) {
+        m_CharID[0] = '0' + Col;
+        m_CharID[1] = '.';
+        m_CharID[2] = '0' + Row;
     }
 
     // Copy constructor (needed because you have a custom assignment operator)

@@ -80,7 +80,7 @@ void CDotsManager::createDotPixmaps()
 {
     for(eColor color: CUtility::m_ColorDictKeys)
     {
-        QImage dotImage(200,200, QImage::Format_ARGB32);
+        QImage dotImage(100,100, QImage::Format_ARGB32);
         QPainter dotPainter(&dotImage);
 
         QPen dotPen = QPen(QColor::fromRgba(0x99000000), 1, Qt::SolidLine);
@@ -94,10 +94,10 @@ void CDotsManager::createDotPixmaps()
         dotPainter.begin(&dotImage);
         dotPainter.setPen(dotPen);
         dotPainter.setBrush(dotBrush);
-        dotPainter.drawEllipse(0,0,200,200);
+        dotPainter.drawEllipse(0,0,100,100);
         dotPainter.end();
 
-        QPixmap dotPixmap(200,200);
+        QPixmap dotPixmap(100,100);
         dotPixmap.convertFromImage(dotImage);
 
         this->m_DotPixmaps.insert(std::pair<eColor,QPixmap>(color,dotPixmap));
@@ -339,22 +339,22 @@ void CDotsManager::paintEvent(QPaintEvent *event)
     drawDots(&Painter);
 
 #if defined(QT_DEBUG)
-    //if ( m_Dots.size() > 0 ){
-    //    QRect cell = m_Manager.getCenterPointCell(m_Dots[0]);
-    //    QRect cells = m_Manager.getDotCellsAsRect(m_Dots[0]);
-    //    QRect dot = m_Dots[0]->getDrawRect();
-    //    QRect intersection = cell.intersected(dot);
+    if ( m_Dots.size() > 0 ){
+        QRect cells = m_Manager.getDotCellsAsRect(m_Dots[0]);
+        QVector<PTDot> nearestDots = m_Manager.getNearestDots(m_Dots[0]);
+        QRect dotRect = m_Dots[0]->getDrawRect();
 
-    //    Painter.setPen(Qt::red);
-    //    Painter.drawRect(cells);
-    //    Painter.setPen(Qt::white);
-    //    Painter.drawRect(cell);
-    //    Painter.setPen(Qt::white);
-    //    Painter.drawRect(dot);
-    //    Painter.setPen(Qt::yellow);
-    //    Painter.setBrush(Qt::darkYellow);
-    //    Painter.drawRect(intersection);
-    //}
+        Painter.setPen(Qt::red);
+        Painter.drawRect(cells);
+        Painter.setPen(Qt::darkGray);
+        Painter.setBrush(Qt::darkGray);
+        for( PTDot dot: nearestDots ){
+            Painter.drawEllipse(dot->getDrawRect());
+        }
+        Painter.setPen(Qt::white);
+        Painter.setBrush(Qt::white);
+        Painter.drawEllipse(dotRect);
+    }
 #endif
 
     Painter.end();
