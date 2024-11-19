@@ -123,7 +123,6 @@ MainWindow::MainWindow(QWidget *parent)
     //  is in fact trying to click to help make the game a more enjoyable
     //  experience (and allows for better control... <crosses fingers/>)
 
-    ui->oglDots->setSVGFile(":/images/circle.svg");
     ui->oglDots->show();
     ui->oglDots->raise();
 

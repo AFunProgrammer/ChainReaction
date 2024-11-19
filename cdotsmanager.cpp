@@ -3,27 +3,10 @@
 #include <QPainter>
 #include <math.h>
 
-bool CDotsManager::m_ClickLock = false;
-
 CDotsManager::CDotsManager(QWidget *parent) : QOpenGLWidget{parent}
 {
     setAutoFillBackground(false);
-
     createDotPixmaps();
-}
-
-void CDotsManager::setSVGFile(QString SvgFilePath)
-{
-    m_SvgFilePath = SvgFilePath;
-
-    QFile svgImageFile = QFile(SvgFilePath);
-    svgImageFile.open(QIODeviceBase::ReadOnly);
-    m_SvgFile = QString(svgImageFile.readAll());
-}
-
-QString CDotsManager::getSVGFilePath()
-{
-    return m_SvgFilePath;
 }
 
 void CDotsManager::setClearColor(QColor Color)
@@ -31,50 +14,6 @@ void CDotsManager::setClearColor(QColor Color)
     m_ClearColor = Color;
 }
 
-
-QPixmap CDotsManager::getSVGPixmap(eColor Color, uint Size = 0)
-{
-    QPixmap svgToPixmap;
-    QString svgColorSizeChange = m_SvgFile;
-
-    switch(Color)
-    {
-    case eColor::yellow:
-        svgColorSizeChange.replace("red","yellow");
-        break;
-    case eColor::orange:
-        svgColorSizeChange.replace("red","orange");
-        break;
-    case eColor::green:
-        svgColorSizeChange.replace("red","green");
-        break;
-    case eColor::blue:
-        svgColorSizeChange.replace("red","blue");
-        break;
-    case eColor::purple:
-        svgColorSizeChange.replace("red","purple");
-        break;
-    default:
-        break;
-    }
-
-    svgColorSizeChange.replace(" 12", QString(" ") + QString(std::to_string(Size*2).c_str()));
-    svgColorSizeChange.replace("\"6", QString("\"") + QString(std::to_string(Size).c_str()));
-
-    QByteArray baSvgColorChanged = QByteArray(svgColorSizeChange.toUtf8());
-    m_SvgRenderer.load(baSvgColorChanged);
-
-    QPoint pixmapMaxSize( m_SvgRenderer.defaultSize().width()*2, m_SvgRenderer.defaultSize().height()*2 );
-    svgToPixmap = QPixmap(pixmapMaxSize.x(), pixmapMaxSize.y());
-
-    svgToPixmap.fill(QColor::fromRgba(0x00000000));
-
-    QPainter paintPixmap(&svgToPixmap);
-
-    m_SvgRenderer.render(&paintPixmap, svgToPixmap.rect());
-
-    return svgToPixmap;
-}
 
 void CDotsManager::createDotPixmaps()
 {
@@ -224,20 +163,15 @@ void CDotsManager::updateDots()
 
 void CDotsManager::drawDots(QPainter* Painter)
 {
-    //QBrush colorBrush = QBrush(Qt::red);
-    //Painter->setPen(QPen(m_ClearColor,1,Qt::PenStyle::SolidLine));
-    //Painter->setBrush(colorBrush);
+    m_DrawBuffer.fill(Qt::transparent);
+    QPainter bufferPainter(&m_DrawBuffer);
+
     for( PTDot dot: m_Dots )
     {
-        //colorBrush.setColor(dot->getColor());
-        //Painter->drawEllipse(dot->getDrawRect());
-        Painter->drawPixmap(dot->getDrawRect(), dot->m_Pixmap);
-
-        //QImage image = dot->getPixmap()->toImage();
-        //QString format = QString("bpp: ") + std::to_string(image.pixelFormat().bitsPerPixel()).c_str() + " format: " + std::to_string(image.format()).c_str();
-        //qDebug() << "Draw Rect: " << dot->getDrawRect() << " format: " << format;
-
+        bufferPainter.drawPixmap(dot->getDrawRect(), dot->m_Pixmap);
     }
+
+    Painter->drawPixmap(0,0,m_DrawBuffer);
 }
 
 void CDotsManager::checkForCollisions(QList<PTDot> resizingDots)
@@ -286,6 +220,8 @@ uint CDotsManager::getLastCollisionCount()
 void CDotsManager::resizeEvent(QResizeEvent *event){
     QOpenGLWidget::resizeEvent(event);
     setDotsDrawBoundary();
+    //re-create draw buffer based upon resize
+    m_DrawBuffer = QPixmap(event->size());
     //re-create manager based upon resized window
     m_Manager.createManager(geometry().size());
 }
