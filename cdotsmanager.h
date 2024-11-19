@@ -17,20 +17,8 @@ class CDotsManager : public QOpenGLWidget
 {
     Q_OBJECT
 
-public:
-    enum class Direction
-    {
-        Positive = 0x0,
-        Negative,
-        None
-    };
-
 //single class needs
 private:
-    QString m_SvgFilePath;
-    QString m_SvgFile;
-    QSvgRenderer m_SvgRenderer;
-
     uint m_Collisions = 0;
     uint m_LastCollisionCount = 0;
 
@@ -40,6 +28,8 @@ private:
 
     QRect m_Rect = QRect(0,0,0,0);
 
+    QPixmap m_DrawBuffer;
+
 private:
     QList<PTDot> m_Dots;
     QList<PTDot> m_RemovedDots;
@@ -48,9 +38,6 @@ private:
 
     std::map<eColor, QPixmap> m_DotPixmaps;
 
-    static bool m_ClickLock;
-
-    QPixmap getSVGPixmap(eColor Color, uint Size);
     void createDotPixmaps();
 
     void setDotPixmap(PTDot Dot);
@@ -64,10 +51,7 @@ private:
 
 public:
     explicit CDotsManager(QWidget *parent = nullptr);
-    ~CDotsManager(){}//{if(m_SvgRenderer!=nullptr){delete m_SvgRenderer;}}
-
-    void setSVGFile(QString SvgFilePath);
-    QString getSVGFilePath();
+    ~CDotsManager(){}
 
     QList<PTDot> getDots();
     void addDot(PTDot Dot);
@@ -79,19 +63,14 @@ public:
 
     void updateDots();
 
-    void setBounds(QSize size);
-
     uint getCollisionCount();
     uint getLastCollisionCount();
 
     void setClearColor(QColor Color);
 
-    void resizeEvent(QResizeEvent *event) override;
-    //void setGeometry(const QRect &r);
-    //QRect geometry();
-
-    void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
+    void paintEvent(QPaintEvent *event) override;
+    void resizeEvent(QResizeEvent *event) override;
 signals:
 
 };
