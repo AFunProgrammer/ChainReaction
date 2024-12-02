@@ -14,6 +14,29 @@ void CDotsManager::setClearColor(QColor Color)
     m_ClearColor = Color;
 }
 
+uint CDotsManager::getCollisionCount()
+{
+    return m_Collisions;
+}
+
+uint CDotsManager::getLastCollisionCount()
+{
+    return m_LastCollisionCount;
+}
+
+uint CDotsManager::getDotCount()
+{
+    static int lastCount = 0;
+    if (!m_DotsLock.tryLockForRead(1)){
+        return lastCount;
+    }
+
+    lastCount = m_Dots.count();
+
+    m_DotsLock.unlock();
+
+    return lastCount;
+}
 
 void CDotsManager::createDotPixmaps()
 {
@@ -30,7 +53,6 @@ void CDotsManager::createDotPixmaps()
 
         dotImage.fill(QColor::fromRgba(0x00000000));
 
-        dotPainter.begin(&dotImage);
         dotPainter.setPen(dotPen);
         dotPainter.setBrush(dotBrush);
         dotPainter.drawEllipse(0,0,100,100);
@@ -43,28 +65,6 @@ void CDotsManager::createDotPixmaps()
     }
 }
 
-void CDotsManager::setDotPixmap(PTDot Dot)
-{
-    Dot->m_MaxScale = 3.0f;
-    Dot->m_Pixmap = m_DotPixmaps[Dot->m_Color];
-}
-
-void CDotsManager::setDotsDrawBoundary()
-{
-    QSize Bounds = this->geometry().size();
-
-    for(PTDot dot: m_Dots)
-    {
-        dot->m_BoxBounds = Bounds;
-    }
-}
-
-void CDotsManager::setDotSize(PTDot Dot)
-{
-    setDotPixmap(Dot);
-}
-
-
 QList<PTDot> CDotsManager::getDots()
 {
     return m_Dots;
@@ -72,6 +72,8 @@ QList<PTDot> CDotsManager::getDots()
 
 void CDotsManager::addDot(PTDot Dot)
 {
+    // Done before any render timer created
+    //  should probably be in the readWrite lock...
     if ( Dot != nullptr )
     {
         Dot->m_BoxBounds = this->geometry().size();
@@ -81,22 +83,22 @@ void CDotsManager::addDot(PTDot Dot)
     }
 }
 
-void CDotsManager::delDot(int Index)
+void CDotsManager::setDotPixmap(PTDot Dot)
 {
-    if ( m_Dots.count() > Index )
-    {
-        delete m_Dots[Index];
-        m_Dots.removeAt(Index);
-    }
-}
-
-uint CDotsManager::getDotCount()
-{
-    return m_Dots.count();
+    Dot->m_MaxScale = 3.0f;
+    Dot->m_Pixmap = m_DotPixmaps[Dot->m_Color];
 }
 
 void CDotsManager::clearDots()
 {
+    int tryLockAttempt = 0;
+    while ( m_DotsLock.tryLockForWrite(1) == false ){
+        tryLockAttempt++;
+        if ( tryLockAttempt >= 5 ){
+            return; //could not obtain a lock quick enough
+        }
+    }
+
     for(PTDot dot: m_Dots)
     {
         delete dot;
@@ -110,6 +112,8 @@ void CDotsManager::clearDots()
     m_Dots.clear();
     m_RemovedDots.clear();
     m_Manager.createManager(geometry().size());
+
+    m_DotsLock.unlock();
 }
 
 void CDotsManager::setDotsSize(uint Size)
@@ -120,7 +124,43 @@ void CDotsManager::setDotsSize(uint Size)
 
 void CDotsManager::updateDots()
 {
+    //
+    //  what can I do architecturally different to always update without incurring
+    //   speed penalties of writes or excessive checks?
+    //
+    static std::function<void(PTDot,int)> resizeDot = [](PTDot dot, int BaseSize){dot->setBaseSize(BaseSize);};
+    static std::function<void(PTDot,int)> noResizeDot = [](PTDot, int){};
+    static std::function<void(PTDot,int)>* resizeFunction = nullptr;
+    static std::function<void(PTDot,QSize)> setBounds = [](PTDot dot, QSize Bounds){dot->m_BoxBounds = Bounds;};
+    static std::function<void(PTDot,QSize)> noSetBounds = [](PTDot, QSize){};
+    static std::function<void(PTDot,QSize)>* boundsFunction = nullptr;
+
+    // Cache frequently accessed values
+    bool updateBounds = m_UpdateBounds.width() || m_UpdateBounds.height();
+    bool updateDotsSize = m_UpdateDotsSize;
+
     QList<PTDot> resizingDots;
+    resizingDots.reserve(m_Dots.count());  // Reserve space to avoid reallocations
+
+    // Determine which function to use based on the conditions
+    boundsFunction = updateBounds ? &setBounds : &noSetBounds;
+    resizeFunction = updateDotsSize ? &resizeDot : &noResizeDot;
+
+    // !!!very important
+    // attempt to lock, otherwise exit
+    int tryLockAttempt = 0;
+    while ( m_DotsLock.tryLockForWrite(1) == false ){
+        tryLockAttempt++;
+        if ( tryLockAttempt >= 3 ){
+            return; //could not obtain a lock quick enough
+        }
+    }
+
+    // [Input] touched dot is only updated in this function
+    if ( m_MouseTouched ){
+        m_MouseTouched->m_Touched = true;
+        m_MouseTouched = nullptr;
+    }
 
     uint uDots = m_Dots.count();
 
@@ -135,47 +175,32 @@ void CDotsManager::updateDots()
 
             uDots--;
             uDot--;
-        }
-        else
-        {
-            m_Dots[uDot]->update();
-            m_Manager.updateDot(m_Dots[uDot]);
-            if ( m_Dots[uDot]->m_Touched )
-            {
-                //setDotPixmap(m_Dots[uDot]);
-                resizingDots.append(m_Dots[uDot]);
-            }
-        }
-    }
-
-    if ( m_UpdateDotsSize > 0 )
-    {
-        for(PTDot dot: m_Dots)
-        {
-            dot->setBaseSize(m_UpdateDotsSize);
+            continue;
         }
 
-        m_UpdateDotsSize = 0;
+        m_Dots[uDot]->update();
+        m_Manager.updateDot(m_Dots[uDot]);
+        if ( m_Dots[uDot]->m_Touched )
+        {
+            //setDotPixmap(m_Dots[uDot]);
+            resizingDots.append(m_Dots[uDot]);
+        }
+
+        (*resizeFunction)(m_Dots[uDot],m_UpdateDotsSize);
+        (*boundsFunction)(m_Dots[uDot],m_UpdateBounds);
     }
 
     checkForCollisions(resizingDots);
-}
 
-void CDotsManager::drawDots(QPainter* Painter)
-{
-    m_DrawBuffer.fill(Qt::transparent);
-    QPainter bufferPainter(&m_DrawBuffer);
+    m_UpdateBounds = QSize(0,0);
+    m_UpdateDotsSize = 0;
 
-    for( PTDot dot: m_Dots )
-    {
-        bufferPainter.drawPixmap(dot->getDrawRect(), dot->m_Pixmap);
-    }
-
-    Painter->drawPixmap(0,0,m_DrawBuffer);
+    m_DotsLock.unlock();
 }
 
 void CDotsManager::checkForCollisions(QList<PTDot> resizingDots)
 {
+    // this is done only during the update function
     if ( resizingDots.count() > 0 )
     {
         for(PTDot dot: resizingDots)
@@ -205,23 +230,34 @@ void CDotsManager::checkForCollisions(QList<PTDot> resizingDots)
     }
 }
 
-
-uint CDotsManager::getCollisionCount()
+void CDotsManager::drawDots()
 {
-    return m_Collisions;
-}
+    int tryLockAttempt = 0;
+    while ( m_DotsLock.tryLockForRead(1) == false ){
+        tryLockAttempt++;
+        if ( tryLockAttempt >= 3 ){
+            return; //could not obtain a lock quick enough
+        }
+    }
 
-uint CDotsManager::getLastCollisionCount()
-{
-    return m_LastCollisionCount;
-}
+    m_DrawBuffer.fill(Qt::transparent);
+    QPainter bufferPainter(&m_DrawBuffer);
 
+    for( PTDot dot: m_Dots )
+    {
+        bufferPainter.drawPixmap(dot->getDrawRect(), dot->m_Pixmap);
+    }
+    bufferPainter.end();
+
+    m_DotsLock.unlock();
+}
 
 void CDotsManager::resizeEvent(QResizeEvent *event){
     QOpenGLWidget::resizeEvent(event);
-    setDotsDrawBoundary();
+    //update dots bounding box in update function
+    m_UpdateBounds = this->geometry().size();
     //re-create draw buffer based upon resize
-    m_DrawBuffer = QPixmap(event->size());
+    m_DrawBuffer = QPixmap(event->size()*2);
     //re-create manager based upon resized window
     m_Manager.createManager(geometry().size());
 }
@@ -237,6 +273,14 @@ void CDotsManager::mousePressEvent(QMouseEvent *event)
 
     QVector<PTDot> Dots = m_Manager.getNearestDots(clickPos);
     PTDot closest = nullptr;
+
+    int tryLockAttempt = 0;
+    while ( m_DotsLock.tryLockForRead(3) == false ){
+        tryLockAttempt++;
+        if ( tryLockAttempt >= 5 ){
+            return; //could not obtain a lock quick enough
+        }
+    }
 
     for( PTDot dot : Dots )
     {
@@ -254,9 +298,12 @@ void CDotsManager::mousePressEvent(QMouseEvent *event)
         }
     }
 
-    if ( closest != nullptr)
-        closest->m_Touched = true;
 
+    if ( closest != nullptr){
+        m_MouseTouched = closest;
+    }
+
+    m_DotsLock.unlock();
 }
 
 
@@ -272,7 +319,10 @@ void CDotsManager::paintEvent(QPaintEvent *event)
     Painter.setRenderHint(QPainter::SmoothPixmapTransform);
     Painter.fillRect(event->rect(),brushBackground);
 
-    drawDots(&Painter);
+    drawDots();
+
+    Painter.drawPixmap(0,0,m_DrawBuffer);
+
 
 #if defined(QT_DEBUG)
     if ( m_Dots.size() > 0 ){

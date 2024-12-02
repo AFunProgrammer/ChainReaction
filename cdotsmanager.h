@@ -23,6 +23,7 @@ private:
     uint m_LastCollisionCount = 0;
 
     uint m_UpdateDotsSize = 0;
+    QSize m_UpdateBounds = QSize(0,0);
 
     QColor m_ClearColor = Qt::black;
 
@@ -33,20 +34,19 @@ private:
 private:
     QList<PTDot> m_Dots;
     QList<PTDot> m_RemovedDots;
+    PTDot m_MouseTouched = nullptr;
 
     CSpatialManager m_Manager;
 
     std::map<eColor, QPixmap> m_DotPixmaps;
 
+    QReadWriteLock m_DotsLock;
+
     void createDotPixmaps();
 
     void setDotPixmap(PTDot Dot);
 
-    void setDotsDrawBoundary();
-
-    void setDotSize(PTDot Dot);
-
-    void drawDots(QPainter* Painter);
+    void drawDots();
     void checkForCollisions(QList<PTDot> resizingDots);
 
 public:
@@ -55,7 +55,6 @@ public:
 
     QList<PTDot> getDots();
     void addDot(PTDot Dot);
-    void delDot(int Index);
     uint getDotCount();
     void clearDots();
 

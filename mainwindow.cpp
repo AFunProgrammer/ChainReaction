@@ -1,15 +1,12 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-#include <stdlib.h>
-#include <math.h>
-
-#include <QObject>
-#include <QGuiApplication>
 #include <QApplication>
 #include <QDesktopServices>
-
+#include <QGuiApplication>
+#include <QObject>
 #include <QSlider>
+
 
 void MainWindow::CreateDots(uint Count, uint Size)
 {
