@@ -158,7 +158,6 @@ MainWindow::MainWindow(QWidget *parent)
 
             ui->lblMessage->setText(strYouCaused);
         }
-
     });//end of timer loop
 
     ui->btnQuit->connect(ui->btnQuit, &QPushButton::clicked, qApp, &QCoreApplication::quit);

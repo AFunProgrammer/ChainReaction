@@ -35,10 +35,10 @@ typedef struct t_Dot{
     QSize m_BoxBounds = QSize(0,0);
     float m_MaxScale = 3.0f;
 
+    QPixmap* m_Pixmap;
+
     // to efficiently track cell information
     TCharID m_CellLookup;
-
-    QPixmap m_Pixmap;
 
     void setBaseSize(int Size){
         m_BaseSize = Size;

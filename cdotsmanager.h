@@ -44,7 +44,7 @@ private:
 
     void createDotPixmaps();
 
-    void setDotPixmap(PTDot Dot);
+    QPixmap* getPixmapByColor(eColor Color);
 
     void drawDots();
     void checkForCollisions(QList<PTDot> resizingDots);

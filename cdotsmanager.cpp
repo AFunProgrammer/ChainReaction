@@ -77,16 +77,15 @@ void CDotsManager::addDot(PTDot Dot)
     if ( Dot != nullptr )
     {
         Dot->m_BoxBounds = this->geometry().size();
-        setDotPixmap(Dot);
+        Dot->m_Pixmap = getPixmapByColor(Dot->m_Color);
         m_Dots.append(Dot);
         m_RemovedDots.resize(m_Dots.count());
     }
 }
 
-void CDotsManager::setDotPixmap(PTDot Dot)
+QPixmap* CDotsManager::getPixmapByColor(eColor Color)
 {
-    Dot->m_MaxScale = 3.0f;
-    Dot->m_Pixmap = m_DotPixmaps[Dot->m_Color];
+    return &(m_DotPixmaps[Color]);
 }
 
 void CDotsManager::clearDots()
@@ -182,7 +181,6 @@ void CDotsManager::updateDots()
         m_Manager.updateDot(m_Dots[uDot]);
         if ( m_Dots[uDot]->m_Touched )
         {
-            //setDotPixmap(m_Dots[uDot]);
             resizingDots.append(m_Dots[uDot]);
         }
 
@@ -245,7 +243,7 @@ void CDotsManager::drawDots()
 
     for( PTDot dot: m_Dots )
     {
-        bufferPainter.drawPixmap(dot->getDrawRect(), dot->m_Pixmap);
+        bufferPainter.drawPixmap(dot->getDrawRect(), *(dot->m_Pixmap));
     }
     bufferPainter.end();
 
