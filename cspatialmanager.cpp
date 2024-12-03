@@ -2,6 +2,7 @@
 
 #include <QSet>
 #include <QtMath>
+#include <QDebug>
 
 // Global Instance
 CSpatialManager* CSpatialManager::getGlobalInstance(){

@@ -23,86 +23,45 @@ enum class eColor
     white
 };
 
-typedef struct t_CharID {
+struct t_CharID {
     char m_CharID[3] = {}; // Default initialize the array
 
-    // Default constructor
-    explicit t_CharID(char c1 = '\0', char c2 = '\0', char c3 = '\0') {
-        m_CharID[0] = c1;
-        m_CharID[1] = c2;
-        m_CharID[2] = c3;
-    }
+    // Default constructors
+    explicit t_CharID(char c1 = '\0', char c2 = '\0', char c3 = '\0');
+    t_CharID(int Col, int Row);
 
-    // Default constructor
-    t_CharID(int Col, int Row) {
-        m_CharID[0] = '0' + Col;
-        m_CharID[1] = '.';
-        m_CharID[2] = '0' + Row;
-    }
-
-    // Copy constructor (needed because you have a custom assignment operator)
-    t_CharID(const t_CharID& other) {
-        m_CharID[0] = other.m_CharID[0];
-        m_CharID[1] = other.m_CharID[1];
-        m_CharID[2] = other.m_CharID[2];
-    }
-
-    // Move constructor (needed to support emplace or move operations)
-    t_CharID(t_CharID&& other) noexcept {
-        m_CharID[0] = std::move(other.m_CharID[0]);
-        m_CharID[1] = std::move(other.m_CharID[1]);
-        m_CharID[2] = std::move(other.m_CharID[2]);
-    }
+    // Copy and move constructors
+    t_CharID(const t_CharID& other);
+    t_CharID(t_CharID&& other) noexcept;
 
     // Constructor that takes a std::tuple<int, int>
-    inline t_CharID(const std::tuple<int, int>& rhs) {
-        m_CharID[0] = '0' + std::get<0>(rhs);  // Convert first element to char
-        m_CharID[1] = '.';                      // Dot separator
-        m_CharID[2] = '0' + std::get<1>(rhs);  // Convert second element to char
-    }
+    t_CharID(const std::tuple<int, int>& rhs);
 
-    // Assignment from another t_CharID object
-    inline t_CharID& operator=(const t_CharID& rhs) {
-        m_CharID[0] = rhs.m_CharID[0];
-        m_CharID[1] = rhs.m_CharID[1];
-        m_CharID[2] = rhs.m_CharID[2];
-        return *this;  // Return the current object (this)
-    }
+    // Assignment operators
+    t_CharID& operator=(const t_CharID& rhs);
+    t_CharID& operator=(const std::tuple<int, int>& rhs);
 
-    // Assignment from a tuple<int, int>
-    inline t_CharID& operator=(const std::tuple<int, int>& rhs) {
-        m_CharID[0] = '0' + std::get<0>(rhs); // Get first item of tuple
-        m_CharID[1] = '.';                    // Dot separator
-        m_CharID[2] = '0' + std::get<1>(rhs); // Get second item of tuple
-        return *this;  // Return the current object (this)
-    }
+    // Comparison operators
+    bool operator==(const t_CharID& rhs) const;
+    bool operator!=(const t_CharID& rhs) const;
+};
 
-    // Equality comparison operator (operator==)
-    inline bool operator==(const t_CharID& rhs) const {
-        return m_CharID[0] == rhs.m_CharID[0] &&
-               m_CharID[1] == rhs.m_CharID[1] &&
-               m_CharID[2] == rhs.m_CharID[2];
-    }
+using TCharID = t_CharID;
+using PTCharID = t_CharID*;
 
-    // Inequality comparison operator (operator!=)
-    inline bool operator!=(const t_CharID& rhs) const {
-        return !(*this == rhs);  // Negate the result of operator==
-    }
-} TCharID, *PTCharID;
-
-
-typedef struct _Color
+struct t_Color
 {
     std::string m_Name;
     eColor m_Color;
     QColor m_QtColor;
-}SColor;
+};
 
+using SColor = t_Color;
 
 class CUtility
 {
 public:
-    CUtility();
+    CUtility(){}
 
     static inline ulong getCrossProduct(QPoint ptA, QPoint ptB)
     {

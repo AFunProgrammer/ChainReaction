@@ -4,6 +4,38 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets svg
 
 CONFIG += c++17
 
+# Compiler-specific settings
+# g++{
+#     release{
+#     message("GCC detected")
+#     QMAKE_CXXFLAGS += -flto
+#     QMAKE_LFLAGS += -flto
+#     }
+# }
+# clang{
+#     release{
+#     message("Clang detected")
+#     QMAKE_CXXFLAGS += -flto
+#     QMAKE_LFLAGS += -flto
+#     }
+# }
+# msvc{
+#     release{
+#     message("MSVC detected")
+#     QMAKE_CXXFLAGS += /GL
+#     QMAKE_LFLAGS += /LTCG
+#     }
+# }
+# else {
+#     message("Unknown compiler. No optimizations set.")
+# }
+
+# Additional global settings
+# release{
+#     message("Turning off Debug Output")
+#     DEFINES += QT_NO_DEBUG_OUTPUT
+# }
+
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
