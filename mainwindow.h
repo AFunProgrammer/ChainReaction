@@ -27,6 +27,6 @@ private:
     Ui::MainWindow *ui;
     QTimer RenderTimer;
 
-    void CreateDots(uint Count, QSize Bounds, uint Size);
+    void createDots(uint Count, QSize Bounds, uint Size);
 };
 #endif // MAINWINDOW_H

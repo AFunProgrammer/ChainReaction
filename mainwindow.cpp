@@ -8,7 +8,7 @@
 #include <QSlider>
 
 
-void MainWindow::CreateDots(uint Count, QSize Bounds, uint Size)
+void MainWindow::createDots(uint Count, QSize Bounds, uint Size)
 {
     /***** TODO: Optimize Cleanup Code *********/
     this->RenderTimer.stop();
@@ -90,7 +90,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->sldrDots->connect(ui->sldrDots,&QSlider::valueChanged,[this](int value)
     {
-        CreateDots((uint)value, ui->oglDots->geometry().size(), (uint)(ui->sldrDotSize->value()));
+        createDots((uint)value, ui->oglDots->geometry().size(), (uint)(ui->sldrDotSize->value()));
     });
 
     ui->sldrDotSize->connect(ui->sldrDotSize,&QSlider::valueChanged,[this](int value)
@@ -110,7 +110,7 @@ MainWindow::MainWindow(QWidget *parent)
     // Setup the reset button for more pleasure
     ui->btnReset->connect(ui->btnReset, &QPushButton::clicked, [this]()
     {
-        CreateDots((uint)(ui->sldrDots->value()), ui->oglDots->geometry().size(), (uint)(ui->sldrDotSize->value()));
+        createDots((uint)(ui->sldrDots->value()), ui->oglDots->geometry().size(), (uint)(ui->sldrDotSize->value()));
     });
 
     RenderTimer.setInterval(33);
@@ -159,7 +159,7 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::showEvent(QShowEvent *event) {
     // Create the initial set of dots, doing this in the showEvent
     //  ensures the geometry is sized by the layout manager first
-    CreateDots((uint)(ui->sldrDots->value()), ui->oglDots->geometry().size(), (uint)(ui->sldrDotSize->value()));
+    createDots((uint)(ui->sldrDots->value()), ui->oglDots->geometry().size(), (uint)(ui->sldrDotSize->value()));
     QWidget::showEvent(event);
 }
 
