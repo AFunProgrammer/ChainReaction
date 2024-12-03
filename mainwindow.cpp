@@ -8,30 +8,14 @@
 #include <QSlider>
 
 
-void MainWindow::CreateDots(uint Count, uint Size)
+void MainWindow::CreateDots(uint Count, QSize Bounds, uint Size)
 {
     /***** TODO: Optimize Cleanup Code *********/
     this->RenderTimer.stop();
-    ui->oglDots->clearDots();
+    //ui->oglDots->clearDots();
     /************ End of Cleanup Code **********/
 
-    QSize oglBoundary = ui->oglDots->geometry().size();
-    // Account for radius
-    oglBoundary = QSize(oglBoundary.width() - Size, oglBoundary.height() - Size);
-
-    for ( uint udot = 0; udot < Count; udot++ )
-    {
-        PTDot dot = new TDot;
-        dot->setRandomPosition(oglBoundary);
-        dot->setRandomDirection();
-        dot->setRandomColor();
-        //int rSize = (int)((float)Size * (5.0f/(float)(rand()%20+1)));
-        int rSize = Size;
-        dot->setBaseSize(rSize);
-        dot->m_Id = udot;
-
-        ui->oglDots->addDot(dot);
-    }
+    CDotsManager::getGlobalInstance()->setupDots(Count,Bounds,Size);
 
     RenderTimer.start(33);
 }
@@ -106,13 +90,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->sldrDots->connect(ui->sldrDots,&QSlider::valueChanged,[this](int value)
     {
-        CreateDots((uint)value, (uint)(ui->sldrDotSize->value()));
+        CreateDots((uint)value, ui->oglDots->geometry().size(), (uint)(ui->sldrDotSize->value()));
     });
 
     ui->sldrDotSize->connect(ui->sldrDotSize,&QSlider::valueChanged,[this](int value)
     {
         //CreateDots((uint)(ui->sldrDots->value()), (uint)value);
-        ui->oglDots->setDotsSize(value);
+        CDotsManager::getGlobalInstance()->setDotsSize(value);
     });
 
     // Setup the click capture area, trying to select the dots seems to lag
@@ -126,20 +110,25 @@ MainWindow::MainWindow(QWidget *parent)
     // Setup the reset button for more pleasure
     ui->btnReset->connect(ui->btnReset, &QPushButton::clicked, [this]()
     {
-        CreateDots((uint)(ui->sldrDots->value()), (uint)(ui->sldrDotSize->value()));
+        CreateDots((uint)(ui->sldrDots->value()), ui->oglDots->geometry().size(), (uint)(ui->sldrDotSize->value()));
     });
 
     RenderTimer.setInterval(33);
     RenderTimer.connect(&RenderTimer, &QTimer::timeout, [this]()
     {
-        ui->oglDots->updateDots();
+        QVector<PTDot> PhysicsDots;
+        CDotsManager::getGlobalInstance()->updateDotsMovement(&PhysicsDots);
+        CDotsManager::getGlobalInstance()->updateDotsPhysics(&PhysicsDots);
+
         ui->oglDots->update();
 
-        ui->lblNumberOfDots->setText(std::to_string(ui->oglDots->getDotCount()).c_str());
+        uint remainingDots = CDotsManager::getGlobalInstance()->getRemainingDotCount();
+        ui->lblNumberOfDots->setText(std::to_string(remainingDots).c_str());
 
-        if ( ui->oglDots->getCollisionCount() == 0 && ui->oglDots->getLastCollisionCount() > 0 )
+        if (  CDotsManager::getGlobalInstance()->getCollisionCount() == 0 &&
+              CDotsManager::getGlobalInstance()->getLastCollisionCount() > 0 )
         {
-            int CollisionCount = ui->oglDots->getLastCollisionCount();
+            int CollisionCount =  CDotsManager::getGlobalInstance()->getLastCollisionCount();
             QString strYouCaused = QString(std::to_string(CollisionCount).c_str()) + QString(" Collisions - ");
             if ( CollisionCount < 5 )
                 strYouCaused += "Good";
@@ -162,7 +151,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->btnQuit->connect(ui->btnQuit, &QPushButton::clicked, qApp, &QCoreApplication::quit);
 
-
     // Start the timer with the awesome lambda inside :-)
     //RenderTimer.start(33);
 }
@@ -171,7 +159,7 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::showEvent(QShowEvent *event) {
     // Create the initial set of dots, doing this in the showEvent
     //  ensures the geometry is sized by the layout manager first
-    CreateDots((uint)(ui->sldrDots->value()), (uint)(ui->sldrDotSize->value()));
+    CreateDots((uint)(ui->sldrDots->value()), ui->oglDots->geometry().size(), (uint)(ui->sldrDotSize->value()));
     QWidget::showEvent(event);
 }
 

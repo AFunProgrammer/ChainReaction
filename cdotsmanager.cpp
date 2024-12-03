@@ -3,15 +3,16 @@
 #include <QPainter>
 #include <math.h>
 
-CDotsManager::CDotsManager(QWidget *parent) : QOpenGLWidget{parent}
-{
-    setAutoFillBackground(false);
-    createDotPixmaps();
+
+// Global Instance
+CDotsManager* CDotsManager::getGlobalInstance(){
+    static CDotsManager g_DotsManager;
+    return &g_DotsManager;
 }
 
-void CDotsManager::setClearColor(QColor Color)
+CDotsManager::CDotsManager(QObject *parent) : QObject{parent}
 {
-    m_ClearColor = Color;
+    createDotPixmaps();
 }
 
 uint CDotsManager::getCollisionCount()
@@ -24,7 +25,7 @@ uint CDotsManager::getLastCollisionCount()
     return m_LastCollisionCount;
 }
 
-uint CDotsManager::getDotCount()
+uint CDotsManager::getRemainingDotCount()
 {
     static int lastCount = 0;
     if (!m_DotsLock.tryLockForRead(1)){
@@ -65,25 +66,42 @@ void CDotsManager::createDotPixmaps()
     }
 }
 
-QList<PTDot> CDotsManager::getDots()
+QVector<PTDot> CDotsManager::getDots()
 {
     return m_Dots;
 }
 
-void CDotsManager::addDot(PTDot Dot)
-{
+void CDotsManager::setupDots(int Count, QSize Bounds, uint Size){
     // Done before any render timer created
     //  should probably be in the readWrite lock...
-    if ( Dot != nullptr )
+    PTDot dot = nullptr;
+
+    // remove all dots first
+    clearDots();
+
+    // setup allocations
+    m_Dots.reserve(Count);
+    m_RemovedDots.reserve(Count);
+
+    for ( int iDot = 0; iDot < Count; iDot++ )
     {
-        Dot->m_BoxBounds = this->geometry().size();
-        Dot->m_Pixmap = getPixmapByColor(Dot->m_Color);
-        m_Dots.append(Dot);
-        m_RemovedDots.resize(m_Dots.count());
+        dot = new TDot;
+        dot->setRandomPosition(Bounds);
+        dot->setRandomDirection();
+        dot->setRandomColor();
+        dot->m_BoxBounds = Bounds;
+        dot->m_Pixmap = getDotPixmapByColor(dot->m_Color);
+        //int rSize = (int)((float)Size * (5.0f/(float)(rand()%20+1)));
+        int rSize = Size;
+        dot->setBaseSize(rSize);
+        dot->m_Id = (unsigned)iDot;
+        m_Dots.push_back(dot);
     }
+
+    m_pManager->createManager(Bounds);
 }
 
-QPixmap* CDotsManager::getPixmapByColor(eColor Color)
+QPixmap* CDotsManager::getDotPixmapByColor(eColor Color)
 {
     return &(m_DotPixmaps[Color]);
 }
@@ -98,30 +116,40 @@ void CDotsManager::clearDots()
         }
     }
 
-    for(PTDot dot: m_Dots)
-    {
+    for ( PTDot dot: m_Dots ){
         delete dot;
     }
 
-    for(PTDot dot: m_RemovedDots)
-    {
+    for ( PTDot dot: m_RemovedDots ){
         delete dot;
     }
 
     m_Dots.clear();
     m_RemovedDots.clear();
-    m_Manager.createManager(geometry().size());
 
     m_DotsLock.unlock();
 }
 
 void CDotsManager::setDotsSize(uint Size)
 {
+    if ( Size == m_Size )
+        return;
+
     m_UpdateDotsSize = Size;
 }
 
+void CDotsManager::setDotsBounds(QSize Bounds){
+    if ( Bounds == m_Bounds)
+        return;
 
-void CDotsManager::updateDots()
+    m_UpdateBounds = Bounds;
+    // Need to setup new spatial manager
+    m_pManager->createManager(Bounds);
+
+}
+
+
+void CDotsManager::updateDotsMovement(QVector<PTDot>* DotsForPhysics)
 {
     //
     //  what can I do architecturally different to always update without incurring
@@ -138,8 +166,17 @@ void CDotsManager::updateDots()
     bool updateBounds = m_UpdateBounds.width() || m_UpdateBounds.height();
     bool updateDotsSize = m_UpdateDotsSize;
 
-    QList<PTDot> resizingDots;
-    resizingDots.reserve(m_Dots.count());  // Reserve space to avoid reallocations
+    QVector<PTDot> resizingDots;
+    QVector<PTDot>* physicsNeededOnDots = nullptr;
+
+    if ( DotsForPhysics ){
+        physicsNeededOnDots = DotsForPhysics;
+        physicsNeededOnDots->clear();
+    } else {
+        physicsNeededOnDots = &resizingDots;
+    }
+
+    physicsNeededOnDots->reserve(m_Dots.count());  // Reserve space to avoid reallocations
 
     // Determine which function to use based on the conditions
     boundsFunction = updateBounds ? &setBounds : &noSetBounds;
@@ -156,9 +193,9 @@ void CDotsManager::updateDots()
     }
 
     // [Input] touched dot is only updated in this function
-    if ( m_MouseTouched ){
-        m_MouseTouched->m_Touched = true;
-        m_MouseTouched = nullptr;
+    if ( m_dotTouched ){
+        m_dotTouched->m_Touched = true;
+        m_dotTouched = nullptr;
     }
 
     uint uDots = m_Dots.count();
@@ -168,7 +205,7 @@ void CDotsManager::updateDots()
         if ( m_Dots[uDot]->m_Exploded )
         {
             m_RemovedDots.append(m_Dots[uDot]);
-            m_Manager.removeDot(m_Dots[uDot]);
+            m_pManager->removeDot(m_Dots[uDot]);
 
             m_Dots.removeAt(uDot);
 
@@ -178,17 +215,22 @@ void CDotsManager::updateDots()
         }
 
         m_Dots[uDot]->update();
-        m_Manager.updateDot(m_Dots[uDot]);
+        m_pManager->updateDot(m_Dots[uDot]);
         if ( m_Dots[uDot]->m_Touched )
         {
-            resizingDots.append(m_Dots[uDot]);
+            physicsNeededOnDots->append(m_Dots[uDot]);
         }
 
         (*resizeFunction)(m_Dots[uDot],m_UpdateDotsSize);
         (*boundsFunction)(m_Dots[uDot],m_UpdateBounds);
     }
 
-    checkForCollisions(resizingDots);
+    if ( updateBounds ){
+        m_Bounds = m_UpdateBounds;
+    }
+
+    if ( updateDotsSize )
+        m_Size = m_UpdateDotsSize;
 
     m_UpdateBounds = QSize(0,0);
     m_UpdateDotsSize = 0;
@@ -196,14 +238,28 @@ void CDotsManager::updateDots()
     m_DotsLock.unlock();
 }
 
-void CDotsManager::checkForCollisions(QList<PTDot> resizingDots)
+void CDotsManager::updateDotsPhysics(QVector<PTDot>* PhysicsDots)
 {
+    if ( !PhysicsDots ){
+        return; //no list to process
+    }
+
     // this is done only during the update function
-    if ( resizingDots.count() > 0 )
+    if ( PhysicsDots->count() > 0 )
     {
-        for(PTDot dot: resizingDots)
+        // !!!very important
+        // attempt to lock, otherwise exit
+        int tryLockAttempt = 0;
+        while ( m_DotsLock.tryLockForWrite(1) == false ){
+            tryLockAttempt++;
+            if ( tryLockAttempt >= 3 ){
+                return; //could not obtain a lock quick enough
+            }
+        }
+
+        for(PTDot dot: *PhysicsDots)
         {
-            QVector<PTDot> nearestDots = m_Manager.getNearestDots(dot);
+            QVector<PTDot> nearestDots = m_pManager->getNearestDots(dot);
 
             for( PTDot nearDot: nearestDots ){
                 if ( nearDot->m_Touched )
@@ -220,6 +276,8 @@ void CDotsManager::checkForCollisions(QList<PTDot> resizingDots)
                 }
             }
         }
+
+        m_DotsLock.unlock();
     }
     else //Collisions are reduced to 0
     {
@@ -228,48 +286,15 @@ void CDotsManager::checkForCollisions(QList<PTDot> resizingDots)
     }
 }
 
-void CDotsManager::drawDots()
-{
-    int tryLockAttempt = 0;
-    while ( m_DotsLock.tryLockForRead(1) == false ){
-        tryLockAttempt++;
-        if ( tryLockAttempt >= 3 ){
-            return; //could not obtain a lock quick enough
-        }
-    }
-
-    m_DrawBuffer.fill(Qt::transparent);
-    QPainter bufferPainter(&m_DrawBuffer);
-
-    for( PTDot dot: m_Dots )
-    {
-        bufferPainter.drawPixmap(dot->getDrawRect(), *(dot->m_Pixmap));
-    }
-    bufferPainter.end();
-
-    m_DotsLock.unlock();
-}
-
-void CDotsManager::resizeEvent(QResizeEvent *event){
-    QOpenGLWidget::resizeEvent(event);
-    //update dots bounding box in update function
-    m_UpdateBounds = this->geometry().size();
-    //re-create draw buffer based upon resize
-    m_DrawBuffer = QPixmap(event->size()*2);
-    //re-create manager based upon resized window
-    m_Manager.createManager(geometry().size());
-}
-
-void CDotsManager::mousePressEvent(QMouseEvent *event)
-{
-    QPoint clickPos = event->pos();
+void CDotsManager::doCollisionCheck(QPoint Point){
+    QPoint clickPos = Point;
     //Click area is considered the 'nice' area of being clicked in
     // allowing for 'fat' finger touch to select a specific spot
     // within a region and allowing for making mistakes but
     // still having the pleasure of using touch
     QRect clickArea = QRect(clickPos.x()-24,clickPos.y()-24,48,48);
 
-    QVector<PTDot> Dots = m_Manager.getNearestDots(clickPos);
+    QVector<PTDot> Dots = m_pManager->getNearestDots(clickPos);
     PTDot closest = nullptr;
 
     int tryLockAttempt = 0;
@@ -292,56 +317,98 @@ void CDotsManager::mousePressEvent(QMouseEvent *event)
                     closest = dot;
             }
             else
-               closest = dot;
+                closest = dot;
         }
     }
 
 
     if ( closest != nullptr){
-        m_MouseTouched = closest;
+        m_dotTouched = closest;
     }
 
     m_DotsLock.unlock();
 }
 
 
-void CDotsManager::paintEvent(QPaintEvent *event)
-{
-    QPainter Painter(this);
-    QBrush brushBackground = QBrush(m_ClearColor);
+void CDotsManager::drawDotsUsingPaintDevice(QPainter* Painter){
+    int tryLockAttempt = 0;
+    while ( m_DotsLock.tryLockForRead(1) == false ){
+        tryLockAttempt++;
+        if ( tryLockAttempt >= 3 ){
+            return; //could not obtain a lock quick enough
+        }
+    }
 
-    //Painter.begin(this);
-    //glEnable(GL_MULTISAMPLE);
-    //glEnable(GL_LINE_SMOOTH);
-    Painter.setRenderHint(QPainter::Antialiasing);
-    Painter.setRenderHint(QPainter::SmoothPixmapTransform);
-    Painter.fillRect(event->rect(),brushBackground);
-
-    drawDots();
-
-    Painter.drawPixmap(0,0,m_DrawBuffer);
-
+    for( PTDot dot: m_Dots )
+    {
+        Painter->drawPixmap(dot->getDrawRect(), *(dot->m_Pixmap));
+    }
 
 #if defined(QT_DEBUG)
     if ( m_Dots.size() > 0 ){
-        QRect cells = m_Manager.getDotCellsAsRect(m_Dots[0]);
-        QVector<PTDot> nearestDots = m_Manager.getNearestDots(m_Dots[0]);
+        QRect cells = m_pManager->getDotCellsAsRect(m_Dots[0]);
+        QVector<PTDot> nearestDots = m_pManager->getNearestDots(m_Dots[0]);
         QRect dotRect = m_Dots[0]->getDrawRect();
 
-        Painter.setPen(Qt::red);
-        Painter.drawRect(cells);
-        Painter.setPen(Qt::darkGray);
-        Painter.setBrush(Qt::darkGray);
+        Painter->setPen(Qt::red);
+        Painter->drawRect(cells);
+        Painter->setPen(Qt::darkGray);
+        Painter->setBrush(Qt::darkGray);
         for( PTDot dot: nearestDots ){
-            Painter.drawEllipse(dot->getDrawRect());
+            Painter->drawEllipse(dot->getDrawRect());
         }
-        Painter.setPen(Qt::white);
-        Painter.setBrush(Qt::white);
-        Painter.drawEllipse(dotRect);
+        Painter->setPen(Qt::white);
+        Painter->setBrush(Qt::white);
+        Painter->drawEllipse(dotRect);
     }
 #endif
 
-    Painter.end();
+    m_DotsLock.unlock();
+}
+
+void CDotsManager::drawDotsToBuffer()
+{
+    int tryLockAttempt = 0;
+    while ( m_DotsLock.tryLockForRead(1) == false ){
+        tryLockAttempt++;
+        if ( tryLockAttempt >= 3 ){
+            return; //could not obtain a lock quick enough
+        }
+    }
+
+    m_DrawBuffer.fill(Qt::transparent);
+    QPainter BufferPainter(&m_DrawBuffer);
+
+    for( PTDot dot: m_Dots )
+    {
+        BufferPainter.drawPixmap(dot->getDrawRect(), *(dot->m_Pixmap));
+    }
+
+#if defined(QT_DEBUG)
+    if ( m_Dots.size() > 0 ){
+        QRect cells = m_pManager->getDotCellsAsRect(m_Dots[0]);
+        QVector<PTDot> nearestDots = m_pManager->getNearestDots(m_Dots[0]);
+        QRect dotRect = m_Dots[0]->getDrawRect();
+
+        BufferPainter.setPen(Qt::red);
+        BufferPainter.drawRect(cells);
+        BufferPainter.setPen(Qt::darkGray);
+        BufferPainter.setBrush(Qt::darkGray);
+        for( PTDot dot: nearestDots ){
+            BufferPainter.drawEllipse(dot->getDrawRect());
+        }
+        BufferPainter.setPen(Qt::white);
+        BufferPainter.setBrush(Qt::white);
+        BufferPainter.drawEllipse(dotRect);
+    }
+#endif
+    BufferPainter.end();
+
+    m_DotsLock.unlock();
+}
+
+QPixmap CDotsManager::getDrawBuffer(){
+    return m_DrawBuffer;
 }
 
 

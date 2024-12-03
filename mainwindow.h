@@ -25,11 +25,8 @@ protected:
 
 private:
     Ui::MainWindow *ui;
-    QPixmap _circle;
-    CDotsManager _DotsManager;
     QTimer RenderTimer;
 
-public slots:
-    void CreateDots(uint Count = 50, uint Size = 6);
+    void CreateDots(uint Count, QSize Bounds, uint Size);
 };
 #endif // MAINWINDOW_H

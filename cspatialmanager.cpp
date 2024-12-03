@@ -3,6 +3,11 @@
 #include <QSet>
 #include <QtMath>
 
+// Global Instance
+CSpatialManager* CSpatialManager::getGlobalInstance(){
+    static CSpatialManager g_SpatialManager;
+    return &g_SpatialManager;
+}
 
 // Define qHash for t_CharID without using QString
 inline uint qHash(const t_CharID& key, uint seed = 0) {

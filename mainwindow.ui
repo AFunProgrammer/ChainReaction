@@ -274,7 +274,7 @@
        </widget>
       </item>
       <item row="1" column="0" colspan="4">
-       <widget class="CDotsManager" name="oglDots">
+       <widget class="CDotsWidget" name="oglDots">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
           <horstretch>0</horstretch>
@@ -443,9 +443,9 @@ QSlider::handle:horizontal {
  </widget>
  <customwidgets>
   <customwidget>
-   <class>CDotsManager</class>
+   <class>CDotsWidget</class>
    <extends>QOpenGLWidget</extends>
-   <header>cdotsmanager.h</header>
+   <header>cdotswidget.h</header>
   </customwidget>
  </customwidgets>
  <resources>

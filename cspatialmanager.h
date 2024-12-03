@@ -13,7 +13,7 @@ class CSpatialManager : public QObject
 {
     Q_OBJECT
 
-    t_DotsSpaceData m_Space;
+    t_DotsSpaceData m_Space;    
 
     QSize m_WindowSize;
     QPoint m_GridSize;
@@ -21,8 +21,8 @@ class CSpatialManager : public QObject
 
     QHash<TCharID,QRect> m_Cells;
 
-
     QVector<TCharID> getCellsFromBB(PTDot Dot);
+
     TCharID getCellFromPoint(PTDot Dot);
     TCharID getCellFromPoint(QPoint Point);
 public:
@@ -41,6 +41,8 @@ public:
     ////////////////////////////////////////////
     QRect getCenterPointCell(PTDot Dot);
     QRect getDotCellsAsRect(PTDot Dot);
+
+    static CSpatialManager* getGlobalInstance();
 signals:
 };
 
