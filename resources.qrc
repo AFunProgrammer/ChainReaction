@@ -1,7 +1,7 @@
 <RCC>
     <qresource prefix="/icons">
-        <file>ChainReaction_16x16.ico</file>
-        <file>ChainReaction_24x24.ico</file>
-        <file>ChainReaction_32x32.ico</file>
+        <file>assets/ChainReaction_16x16.ico</file>
+        <file>assets/ChainReaction_32x32.ico</file>
+        <file>assets/ChainReaction_24x24.ico</file>
     </qresource>
 </RCC>

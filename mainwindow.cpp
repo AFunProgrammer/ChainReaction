@@ -93,7 +93,7 @@ MainWindow::MainWindow(QWidget *parent)
         createDots((uint)value, ui->oglDots->geometry().size(), (uint)(ui->sldrDotSize->value()));
     });
 
-    ui->sldrDotSize->connect(ui->sldrDotSize,&QSlider::valueChanged,[this](int value)
+    ui->sldrDotSize->connect(ui->sldrDotSize,&QSlider::valueChanged,[](int value)
     {
         //CreateDots((uint)(ui->sldrDots->value()), (uint)value);
         CDotsManager::getGlobalInstance()->setDotsSize(value);
