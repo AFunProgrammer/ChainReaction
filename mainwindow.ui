@@ -13,78 +13,12 @@
     <height>550</height>
    </rect>
   </property>
-  <property name="palette">
-   <palette>
-    <active>
-     <colorrole role="Button">
-      <brush brushstyle="SolidPattern">
-       <color alpha="255">
-        <red>184</red>
-        <green>184</green>
-        <blue>184</blue>
-       </color>
-      </brush>
-     </colorrole>
-     <colorrole role="Window">
-      <brush brushstyle="SolidPattern">
-       <color alpha="255">
-        <red>159</red>
-        <green>159</green>
-        <blue>159</blue>
-       </color>
-      </brush>
-     </colorrole>
-    </active>
-    <inactive>
-     <colorrole role="Button">
-      <brush brushstyle="SolidPattern">
-       <color alpha="255">
-        <red>184</red>
-        <green>184</green>
-        <blue>184</blue>
-       </color>
-      </brush>
-     </colorrole>
-     <colorrole role="Window">
-      <brush brushstyle="SolidPattern">
-       <color alpha="255">
-        <red>159</red>
-        <green>159</green>
-        <blue>159</blue>
-       </color>
-      </brush>
-     </colorrole>
-    </inactive>
-    <disabled>
-     <colorrole role="Button">
-      <brush brushstyle="SolidPattern">
-       <color alpha="255">
-        <red>184</red>
-        <green>184</green>
-        <blue>184</blue>
-       </color>
-      </brush>
-     </colorrole>
-     <colorrole role="Base">
-      <brush brushstyle="SolidPattern">
-       <color alpha="255">
-        <red>159</red>
-        <green>159</green>
-        <blue>159</blue>
-       </color>
-      </brush>
-     </colorrole>
-     <colorrole role="Window">
-      <brush brushstyle="SolidPattern">
-       <color alpha="255">
-        <red>159</red>
-        <green>159</green>
-        <blue>159</blue>
-       </color>
-      </brush>
-     </colorrole>
-    </disabled>
-   </palette>
+  <property name="font">
+   <font>
+    <family>Comic Sans MS</family>
+    <pointsize>18</pointsize>
+    <bold>true</bold>
+   </font>
   </property>
   <property name="contextMenuPolicy">
    <enum>Qt::NoContextMenu</enum>
@@ -132,7 +66,9 @@
         </property>
         <property name="font">
          <font>
-          <pointsize>12</pointsize>
+          <family>Comic Sans MS</family>
+          <pointsize>16</pointsize>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -164,16 +100,21 @@
           </property>
           <property name="font">
            <font>
-            <pointsize>12</pointsize>
+            <family>Comic Sans MS</family>
+            <pointsize>16</pointsize>
+            <bold>true</bold>
            </font>
           </property>
           <property name="text">
            <string>Reset</string>
           </property>
+          <property name="flat">
+           <bool>true</bool>
+          </property>
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="btnNextBackColor">
+         <widget class="QPushButton" name="btnChangeBackColor">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -188,11 +129,16 @@
           </property>
           <property name="font">
            <font>
-            <pointsize>12</pointsize>
+            <family>Comic Sans MS</family>
+            <pointsize>16</pointsize>
+            <bold>true</bold>
            </font>
           </property>
           <property name="text">
-           <string>Next Back Color</string>
+           <string>Change Back Color</string>
+          </property>
+          <property name="flat">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -212,11 +158,16 @@
           </property>
           <property name="font">
            <font>
-            <pointsize>12</pointsize>
+            <family>Comic Sans MS</family>
+            <pointsize>16</pointsize>
+            <bold>true</bold>
            </font>
           </property>
           <property name="text">
            <string>Close</string>
+          </property>
+          <property name="flat">
+           <bool>true</bool>
           </property>
          </widget>
         </item>
@@ -232,7 +183,9 @@
         </property>
         <property name="font">
          <font>
-          <pointsize>12</pointsize>
+          <family>Comic Sans MS</family>
+          <pointsize>16</pointsize>
+          <bold>true</bold>
          </font>
         </property>
         <property name="text">
@@ -253,7 +206,9 @@
         </property>
         <property name="font">
          <font>
-          <pointsize>12</pointsize>
+          <family>Comic Sans MS</family>
+          <pointsize>16</pointsize>
+          <bold>true</bold>
          </font>
         </property>
         <property name="frameShape">
@@ -298,8 +253,13 @@
           </property>
           <property name="font">
            <font>
-            <pointsize>12</pointsize>
+            <family>Comic Sans MS</family>
+            <pointsize>16</pointsize>
+            <bold>true</bold>
            </font>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
           </property>
           <property name="text">
            <string>Dot Size:</string>
@@ -360,7 +320,9 @@ QSlider::handle:horizontal {
           </property>
           <property name="font">
            <font>
-            <pointsize>12</pointsize>
+            <family>Comic Sans MS</family>
+            <pointsize>16</pointsize>
+            <bold>true</bold>
            </font>
           </property>
           <property name="text">

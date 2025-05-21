@@ -2,23 +2,27 @@
 #include "ui_mainwindow.h"
 
 #include <QApplication>
+#include <QMetaEnum>
 #include <QDesktopServices>
 #include <QGuiApplication>
 #include <QObject>
 #include <QSlider>
 
+typedef struct _ColorScheme {
+    Qt::GlobalColor m_BackColor = Qt::black;
+    Qt::GlobalColor m_FontColor = Qt::white;
+}TColorScheme;
 
-void MainWindow::createDots(uint Count, QSize Bounds, uint Size)
-{
-    /***** TODO: Optimize Cleanup Code *********/
-    this->RenderTimer.stop();
-    //ui->oglDots->clearDots();
-    /************ End of Cleanup Code **********/
-
-    CDotsManager::getGlobalInstance()->setupDots(Count,Bounds,Size);
-
-    RenderTimer.start(33);
-}
+TColorScheme g_ChangeColors[] = {
+    {Qt::black,Qt::white},
+    {Qt::white,Qt::black},
+    {Qt::cyan,Qt::black},
+    {Qt::darkCyan,Qt::white},
+    {Qt::magenta,Qt::black},
+    {Qt::darkMagenta,Qt::white},
+    {Qt::lightGray,Qt::black},
+    {Qt::darkGray,Qt::white}
+};
 
 uint g_Collisions = 0;
 QEvent resizeEvent = QEvent(QEvent::Resize);
@@ -29,63 +33,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    ui->btnNextBackColor->connect(ui->btnNextBackColor,&QPushButton::clicked,[this]()
+    ui->btnChangeBackColor->connect(ui->btnChangeBackColor,&QPushButton::clicked,[this]()
     {
-        static Qt::GlobalColor color = Qt::black;
-
-        QColor newColor = Qt::transparent;
-        QColor nextColor = Qt::transparent;
-
-        switch (color)
-        {
-            case Qt::black:
-                color = Qt::white;
-                newColor = Qt::white;
-                nextColor = Qt::cyan;
-            break;
-            case Qt::white:
-                color = Qt::cyan;
-                newColor = Qt::cyan;
-                nextColor = Qt::darkCyan;
-            break;
-            case Qt::cyan:
-                color = Qt::darkCyan;
-                newColor = Qt::darkCyan;
-                nextColor = Qt::magenta;
-            break;
-            case Qt::darkCyan:
-                color = Qt::magenta;
-                newColor = Qt::magenta;
-                nextColor = Qt::darkMagenta;
-            break;
-            case Qt::magenta:
-                color = Qt::darkMagenta;
-                newColor = Qt::darkMagenta;
-                nextColor = Qt::lightGray;
-            break;
-            case Qt::darkMagenta:
-                color = Qt::lightGray;
-                newColor = Qt::lightGray;
-                nextColor = Qt::darkGray;
-            break;
-            case Qt::lightGray:
-                color = Qt::darkGray;
-                newColor = Qt::darkGray;
-                nextColor = Qt::black;
-            break;
-            case Qt::darkGray:
-                color = Qt::black;
-                newColor = Qt::black;
-                nextColor = Qt::white;
-            break;
-            default:
-                color = Qt::black;
-                newColor = Qt::black;
-                nextColor = Qt::white;
-            break;
-        }
-
-        ui->oglDots->setClearColor(newColor);
+        changeColorScheme();
     });
 
     ui->sldrDots->connect(ui->sldrDots,&QSlider::valueChanged,[this](int value)
@@ -130,20 +80,20 @@ MainWindow::MainWindow(QWidget *parent)
         {
             int CollisionCount =  CDotsManager::getGlobalInstance()->getLastCollisionCount();
             QString strYouCaused = QString(std::to_string(CollisionCount).c_str()) + QString(" Collisions - ");
-            if ( CollisionCount < 5 )
+            if ( CollisionCount < 100 )
                 strYouCaused += "Good";
-            if ( CollisionCount < 20 && CollisionCount >= 5 )
-                strYouCaused += "Nice!";
-            if ( CollisionCount < 40 && CollisionCount >= 20 )
-                strYouCaused += "Stockpile Those Up!";
-            if ( CollisionCount < 60 && CollisionCount >= 40 )
-                strYouCaused += "Terrific Collisions!";
-            if ( CollisionCount < 80 && CollisionCount >= 60 )
-                strYouCaused += "Wow, nice click!";
-            if ( CollisionCount < 100 && g_Collisions >= 80 )
-                strYouCaused += "HOLY COW!";
-            if ( CollisionCount >= 100  )
-                strYouCaused += "Collision Masta!";
+            if ( CollisionCount < 300 && CollisionCount >= 100 )
+                strYouCaused += "Awesome!";
+            if ( CollisionCount < 500 && CollisionCount >= 300 )
+                strYouCaused += "Fantastic!";
+            if ( CollisionCount < 800 && CollisionCount >= 500 )
+                strYouCaused += "Tubular!";
+            if ( CollisionCount < 1000 && CollisionCount >= 800 )
+                strYouCaused += "Gnarly!";
+            if ( CollisionCount < 1500 && CollisionCount >= 1000 )
+                strYouCaused += "Master!";
+            if ( CollisionCount >= 1500  )
+                strYouCaused += "Guru!";
 
             ui->lblMessage->setText(strYouCaused);
         }
@@ -151,21 +101,73 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->btnQuit->connect(ui->btnQuit, &QPushButton::clicked, qApp, &QCoreApplication::quit);
 
-    // Start the timer with the awesome lambda inside :-)
-    //RenderTimer.start(33);
+    // change the backcolor to the initial backcolor
+    changeColorScheme();
 }
 
 
 void MainWindow::showEvent(QShowEvent *event) {
     // Create the initial set of dots, doing this in the showEvent
     //  ensures the geometry is sized by the layout manager first
-    createDots((uint)(ui->sldrDots->value()), ui->oglDots->geometry().size(), (uint)(ui->sldrDotSize->value()));
+    QTimer::singleShot(100, [this](){
+        createDots((uint)(ui->sldrDots->value()), ui->oglDots->geometry().size(), (uint)(ui->sldrDotSize->value()));
+    });
     QWidget::showEvent(event);
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::changeColorScheme()
+{
+    static uint changeColorsIndex = sizeof(g_ChangeColors)/sizeof(TColorScheme);
+
+    changeColorsIndex++;
+
+    // get the next backcolor in the list
+    if (changeColorsIndex >= sizeof(g_ChangeColors)/sizeof(TColorScheme) )
+    {
+        changeColorsIndex = 0;
+    }
+
+    // convert colors to strings for using in the style sheets
+    const char* backColor = QMetaEnum::fromType<Qt::GlobalColor>().valueToKey(g_ChangeColors[changeColorsIndex].m_BackColor);
+    const char* fontColor = QMetaEnum::fromType<Qt::GlobalColor>().valueToKey(g_ChangeColors[changeColorsIndex].m_FontColor);
+
+    // Generate stylesheet string
+    QString backgroundStyle = QString("background-color: %1;").arg(backColor);
+    QString textStyle = QString("color: %1;").arg(fontColor);
+
+    // change the clear color (or back color of the ogl device)
+    ui->oglDots->setClearColor(g_ChangeColors[changeColorsIndex].m_BackColor);
+
+    // change the font color to be visible no matter the back color
+    ui->lblDotSize->setStyleSheet(textStyle);
+    ui->lblDots->setStyleSheet(textStyle);
+    ui->lblDotsLeft->setStyleSheet(textStyle);
+    ui->lblNumberOfDots->setStyleSheet(textStyle);
+    ui->lblMessage->setStyleSheet(textStyle);
+    ui->btnReset->setStyleSheet(textStyle);
+    ui->btnChangeBackColor->setStyleSheet(textStyle);
+    ui->btnQuit->setStyleSheet(textStyle);
+
+    // change the background color to match the render color
+    // BUG: BUG - there's discrepancy between ogl render color and back color
+    ui->centralwidget->setStyleSheet(backgroundStyle);
+}
+
+void MainWindow::createDots(uint Count, QSize Bounds, uint Size)
+{
+    /***** TODO: Optimize Cleanup Code *********/
+    this->RenderTimer.stop();
+    //ui->oglDots->clearDots();
+    /************ End of Cleanup Code **********/
+
+    CDotsManager::getGlobalInstance()->setupDots(Count,Bounds,Size);
+
+    RenderTimer.start(33);
 }
 
 

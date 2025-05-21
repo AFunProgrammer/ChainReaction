@@ -28,5 +28,6 @@ private:
     QTimer RenderTimer;
 
     void createDots(uint Count, QSize Bounds, uint Size);
+    void changeColorScheme();
 };
 #endif // MAINWINDOW_H
