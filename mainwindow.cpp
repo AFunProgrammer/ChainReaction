@@ -138,20 +138,22 @@ void MainWindow::changeColorScheme()
 
     // Generate stylesheet string
     QString backgroundStyle = QString("background-color: %1;").arg(backColor);
-    QString textStyle = QString("color: %1;").arg(fontColor);
+    QString textStyleLg = QString("color: %1;\nfont-family: \"Comic Sans MS\";\nfont-size: 24px;").arg(fontColor);
+    QString textStyleSm = QString("color: %1;\nfont-family: \"Comic Sans MS\";\nfont-size: 18px;").arg(fontColor);
+
 
     // change the clear color (or back color of the ogl device)
     ui->oglDots->setClearColor(g_ChangeColors[changeColorsIndex].m_BackColor);
 
     // change the font color to be visible no matter the back color
-    ui->lblDotSize->setStyleSheet(textStyle);
-    ui->lblDots->setStyleSheet(textStyle);
-    ui->lblDotsLeft->setStyleSheet(textStyle);
-    ui->lblNumberOfDots->setStyleSheet(textStyle);
-    ui->lblMessage->setStyleSheet(textStyle);
-    ui->btnReset->setStyleSheet(textStyle);
-    ui->btnChangeBackColor->setStyleSheet(textStyle);
-    ui->btnQuit->setStyleSheet(textStyle);
+    ui->lblDotSize->setStyleSheet(textStyleLg);
+    ui->lblDots->setStyleSheet(textStyleLg);
+    ui->lblDotsLeft->setStyleSheet(textStyleSm);
+    ui->lblNumberOfDots->setStyleSheet(textStyleSm);
+    ui->lblMessage->setStyleSheet(textStyleSm);
+    ui->btnReset->setStyleSheet(textStyleLg);
+    ui->btnChangeBackColor->setStyleSheet(textStyleLg);
+    ui->btnQuit->setStyleSheet(textStyleLg);
 
     // change the background color to match the render color
     // BUG: BUG - there's discrepancy between ogl render color and back color
