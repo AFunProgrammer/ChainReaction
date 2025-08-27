@@ -6,7 +6,6 @@
 #include <QMainWindow>
 #include <QtSvg/QtSvg>
 
-#include "cdotsmanager.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

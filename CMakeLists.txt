@@ -9,7 +9,7 @@ set(CMAKE_AUTORCC ON)
 # Find all required Qt components in one go, as often shown in tutorials.
 # I've included Sensors and Xml as per the tutorial, if your app uses them.
 # If not, you can remove 'Sensors' and 'Xml'.
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Gui OpenGLWidgets Svg)
+find_package(Qt6 6.5.3 REQUIRED COMPONENTS Core Gui OpenGLWidgets Svg)
 
 qt_standard_project_setup()
 
@@ -22,10 +22,9 @@ qt_add_executable(ChainReaction WIN32 MACOSX_BUNDLE
     main.cpp
     mainwindow.cpp mainwindow.h mainwindow.ui
     tdot.cpp tdot.h
-    android/AndroidManifest.xml android/build.gradle android/res/values/libs.xml android/gradle/wrapper/gradle-wrapper.jar android/gradle/wrapper/gradle-wrapper.properties android/gradle.properties android/gradlew android/gradlew.bat
     resources.qrc
     MANUAL_FINALIZATION
-    android/AndroidManifest.xml android/build.gradle android/res/values/libs.xml android/res/xml/qtprovider_paths.xml android/gradle/wrapper/gradle-wrapper.jar android/gradle/wrapper/gradle-wrapper.properties android/gradle.properties android/gradlew android/gradlew.bat
+    android/AndroidManifest.xml android/build.gradle android/res/values/libs.xml android/gradle/wrapper/gradle-wrapper.jar android/gradle/wrapper/gradle-wrapper.properties android/gradle.properties android/gradlew android/gradlew.bat
 )
 
 # Link to all necessary Qt modules.
@@ -45,12 +44,12 @@ if(ANDROID)
         QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
 
     # QT_ANDROID_MIN_SDK_VERSION:
-    # Set to recommended minimum for Qt 6.5.3. (26 is actually but trying 24)
-    set_property(TARGET ChainReaction PROPERTY QT_ANDROID_MIN_SDK_VERSION 24)
+    # Set to recommended minimum for Qt 6.5.3. (26 is actually but trying 25)
+    set_property(TARGET ChainReaction PROPERTY QT_ANDROID_MIN_SDK_VERSION 25)
 
     # QT_ANDROID_TARGET_SDK_VERSION:
     # Set to current recommended target.
-    set_property(TARGET ChainReaction PROPERTY QT_ANDROID_TARGET_SDK_VERSION 34)
+    set_property(TARGET ChainReaction PROPERTY QT_ANDROID_TARGET_SDK_VERSION 35)
 
     # Manually finalize the executable for Android deployment.
     # This pairs with MANUAL_FINALIZATION in qt_add_executable.

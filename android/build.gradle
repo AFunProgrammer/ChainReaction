@@ -5,8 +5,7 @@ buildscript {
     }
 
     dependencies {
-        //noinspection AndroidGradlePluginVersion
-        classpath 'com.android.tools.build:gradle:8.8.0'
+        classpath 'com.android.tools.build:gradle:7.4.1'
     }
 }
 
@@ -15,12 +14,10 @@ repositories {
     mavenCentral()
 }
 
-apply plugin: qtGradlePluginType
+apply plugin: 'com.android.application'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
-    //noinspection GradleDependency
-    implementation 'androidx.core:core:1.16.0'
 }
 
 android {
@@ -31,17 +28,18 @@ android {
      * - qtAndroidDir - holds the path to qt android files
      *                   needed to build any Qt application
      *                   on Android.
-     * - qtGradlePluginType - whether to build an app or a library
      *
      * are defined in gradle.properties file. This file is
      * updated by QtCreator and androiddeployqt tools.
      * Changing them manually might break the compilation!
      *******************************************************/
 
-    namespace = androidPackageName
     compileSdkVersion androidCompileSdkVersion
     buildToolsVersion androidBuildToolsVersion
-    ndkVersion = androidNdkVersion
+    ndkVersion androidNdkVersion
+
+    // Extract native libraries from the APK
+    packagingOptions.jniLibs.useLegacyPackaging true
 
     sourceSets {
         main {
@@ -66,7 +64,7 @@ android {
     }
 
     lintOptions {
-        abortOnError = false
+        abortOnError false
     }
 
     // Do not compress Qt binary resources file
