@@ -1,0 +1,14 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "android-multi-abi",
+      "hidden": false,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "QT_ANDROID_ABIS": "arm64-v8a;armeabi-v7a;x86;x86_64",
+        "QT_ANDROID_BUILD_ALL_ABIS": "TRUE"
+      }
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.inspiringfamily.chainreaction" android:installLocation="auto" android:versionCode="20" android:versionName="Beta 20">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.inspiringfamily.chainreaction" android:installLocation="auto" android:versionCode="26" android:versionName="Beta 26">
     <!-- %%INSERT_PERMISSIONS -->
     <!-- %%INSERT_FEATURES -->
     <supports-screens android:anyDensity="true" android:largeScreens="true" android:normalScreens="true" android:smallScreens="true"/>

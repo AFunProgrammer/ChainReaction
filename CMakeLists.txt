@@ -23,8 +23,8 @@ qt_add_executable(ChainReaction WIN32 MACOSX_BUNDLE
     mainwindow.cpp mainwindow.h mainwindow.ui
     tdot.cpp tdot.h
     resources.qrc
-    MANUAL_FINALIZATION
     android/AndroidManifest.xml android/build.gradle android/res/values/libs.xml android/gradle/wrapper/gradle-wrapper.jar android/gradle/wrapper/gradle-wrapper.properties android/gradle.properties android/gradlew android/gradlew.bat
+    MANUAL_FINALIZATION
 )
 
 # Link to all necessary Qt modules.
@@ -44,12 +44,12 @@ if(ANDROID)
         QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
 
     # QT_ANDROID_MIN_SDK_VERSION:
-    # Set to recommended minimum for Qt 6.5.3. (26 is actually but trying 25)
-    set_property(TARGET ChainReaction PROPERTY QT_ANDROID_MIN_SDK_VERSION 25)
+    # Set to recommended minimum for Qt 6.5.3. (26 is actually but trying 24)
+    set_property(TARGET ChainReaction PROPERTY QT_ANDROID_MIN_SDK_VERSION 24)
 
     # QT_ANDROID_TARGET_SDK_VERSION:
     # Set to current recommended target.
-    set_property(TARGET ChainReaction PROPERTY QT_ANDROID_TARGET_SDK_VERSION 35)
+    set_property(TARGET ChainReaction PROPERTY QT_ANDROID_TARGET_SDK_VERSION 34)
 
     # Manually finalize the executable for Android deployment.
     # This pairs with MANUAL_FINALIZATION in qt_add_executable.
