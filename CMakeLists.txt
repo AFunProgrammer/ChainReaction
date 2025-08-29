@@ -49,7 +49,7 @@ if(ANDROID)
 
     # QT_ANDROID_TARGET_SDK_VERSION:
     # Set to current recommended target.
-    set_property(TARGET ChainReaction PROPERTY QT_ANDROID_TARGET_SDK_VERSION 34)
+    set_property(TARGET ChainReaction PROPERTY QT_ANDROID_TARGET_SDK_VERSION 35)
 
     # Manually finalize the executable for Android deployment.
     # This pairs with MANUAL_FINALIZATION in qt_add_executable.

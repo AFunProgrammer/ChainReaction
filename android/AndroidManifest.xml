@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.inspiringfamily.chainreaction" android:installLocation="auto" android:versionCode="26" android:versionName="Beta 26">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.inspiringfamily.chainreaction" android:installLocation="auto" android:versionCode="30" android:versionName="Beta 30">
     <!-- %%INSERT_PERMISSIONS -->
     <!-- %%INSERT_FEATURES -->
+    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="35" android:maxSdkVersion="35" />
     <supports-screens android:anyDensity="true" android:largeScreens="true" android:normalScreens="true" android:smallScreens="true"/>
     <application android:name="org.qtproject.qt.android.bindings.QtApplication" android:hardwareAccelerated="true" android:label="chain reaction" android:requestLegacyExternalStorage="true" android:allowNativeHeapPointerTagging="false" android:allowBackup="true" android:fullBackupOnly="false" android:icon="@drawable/icon">
         <activity android:name="org.qtproject.qt.android.bindings.QtActivity" android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|layoutDirection|locale|fontScale|keyboard|keyboardHidden|navigation|mcc|mnc|density" android:label="chain reaction" android:launchMode="singleTop" android:screenOrientation="unspecified" android:exported="true" android:theme="@style/splashScreenTheme">
