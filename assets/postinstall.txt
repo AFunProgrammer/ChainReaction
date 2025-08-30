@@ -1,0 +1,5 @@
+This application is licensed under the GNU Lesser General Public License.
+You can find the full license text in the 'LICENSE' file included in this directory.
+
+The source code for this application can be found at:
+https://github.com/AFunProgrammer/ChainReaction
