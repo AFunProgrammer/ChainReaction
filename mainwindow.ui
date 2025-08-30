@@ -31,8 +31,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="resources.qrc">
-    <normaloff>:/icons/assets/ChainReaction_32x32.ico</normaloff>
-    <normalon>:/icons/assets/ChainReaction_32x32.ico</normalon>:/icons/assets/ChainReaction_32x32.ico</iconset>
+    <normaloff>:/icons/chainreaction.ico</normaloff>:/icons/chainreaction.ico</iconset>
   </property>
   <property name="autoFillBackground">
    <bool>true</bool>

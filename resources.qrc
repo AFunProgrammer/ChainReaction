@@ -3,5 +3,9 @@
         <file>assets/ChainReaction_16x16.ico</file>
         <file>assets/ChainReaction_32x32.ico</file>
         <file>assets/ChainReaction_24x24.ico</file>
+        <file alias="chainreaction.ico">assets/chainreaction.ico</file>
+    </qresource>
+    <qresource prefix="/images">
+        <file>assets/chainreaction.png</file>
     </qresource>
 </RCC>
