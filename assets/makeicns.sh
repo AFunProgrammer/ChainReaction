@@ -37,4 +37,7 @@ make_icon 1024 1024 "$ICONSET/icon_512x512@2x.png"
 # Build .icns file
 iconutil -c icns "$ICONSET"
 
+rm -rf ./"$ICONSET"/*
+rmdir ./"$ICONSET"
+
 echo "✅ Created ${NAME}.icns"
